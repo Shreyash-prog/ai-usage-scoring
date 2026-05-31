@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# uv
+.venv/
+
+# Secrets
+.env
+*.key
+
+# Project state
+events.db
+events.db-*
+
+# Personal handoff doc (never commit — public repo)
+SETUP.md
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local Claude Code settings (personal, not shared)
+.claude/settings.local.json
