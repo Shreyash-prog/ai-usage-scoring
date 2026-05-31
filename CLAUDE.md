@@ -119,7 +119,7 @@ Source plan: `ai_usage_scoring_spec.md` §17 (with provider tweaks from `PROVIDE
 
 Update this checklist as each day completes:
 
-- [ ] **Day 1 — Foundations.** uv project, settings, schema, EventLogger, OpenAI + Anthropic clients with health checks.
+- [x] **Day 1 — Foundations.** uv project, settings, schema, EventLogger, OpenAI + Anthropic clients with health checks.
 - [ ] **Day 2 — Sandbox.** Python subprocess runner with rlimits, timeout, output truncation. Tests.
 - [ ] **Day 3 — WS plumbing + Candidate UI shell.** WSManager, candidate WS handler, basic candidate.html with editor + chat + run.
 - [ ] **Day 4 — EventBus + Live Scoring.** Per-session asyncio queues, LiveScorer with all three heuristic formulas.
