@@ -64,6 +64,30 @@ async def end_session(db: Database, session_id: str) -> None:
         await conn.commit()
 
 
+async def list_sessions(db: Database) -> list[SessionRow]:
+    """All sessions, most recently started first (for the dashboard list, §15.3)."""
+    async with db.read() as conn:
+        cur = await conn.execute(
+            "SELECT id, candidate_name, task_sequence, current_task_idx, "
+            "started_at, ended_at, status, schema_version "
+            "FROM sessions ORDER BY started_at DESC"
+        )
+        rows = await cur.fetchall()
+    return [
+        SessionRow(
+            id=r[0],
+            candidate_name=r[1],
+            task_sequence=json.loads(r[2]),
+            current_task_idx=int(r[3]),
+            started_at=int(r[4]),
+            ended_at=int(r[5]) if r[5] is not None else None,
+            status=r[6],
+            schema_version=int(r[7]),
+        )
+        for r in rows
+    ]
+
+
 async def get_session(db: Database, session_id: str) -> SessionRow | None:
     async with db.read() as conn:
         cur = await conn.execute(

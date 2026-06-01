@@ -1,14 +1,39 @@
-"""ScoreStore — upsert score rows (main spec §4 scores table, §10.5 evidence)."""
+"""ScoreStore — upsert/read score rows (main spec §4 scores table, §10.5 evidence)."""
 
 import json
 import time
 
 from app.storage.db import Database
 
+_COLS = [
+    "session_id",
+    "task_id",
+    "dimension",
+    "phase",
+    "score",
+    "confidence",
+    "evidence",
+    "updated_at",
+]
+
 
 class ScoreStore:
     def __init__(self, db: Database) -> None:
         self._db = db
+
+    async def list_scores(self, session_id: str, phase: str) -> list[dict]:
+        async with self._db.read() as conn:
+            cur = await conn.execute(
+                f"SELECT {', '.join(_COLS)} FROM scores WHERE session_id = ? AND phase = ?",
+                (session_id, phase),
+            )
+            rows = await cur.fetchall()
+        out = []
+        for r in rows:
+            record = dict(zip(_COLS, r, strict=True))
+            record["evidence"] = json.loads(record["evidence"])
+            out.append(record)
+        return out
 
     async def upsert(
         self,

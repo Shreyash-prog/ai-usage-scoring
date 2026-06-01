@@ -5,14 +5,13 @@ EventBus/LiveScorer (Day 4), dashboard WS (Day 5), and post-hoc scoring (Day 6)
 are not wired yet.
 """
 
-import json
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -29,6 +28,7 @@ from app.storage.events import EventLogger
 from app.storage.scores import ScoreStore
 from app.storage.tasks import TaskStore
 from app.ws.candidate import CandidateDeps, CandidateSession
+from app.ws.dashboard import DashboardDeps, DashboardSession
 from app.ws.manager import WSManager
 
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +87,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.judge = judge
     app.state.ws_manager = ws_manager
     app.state.bus = bus
-    app.state.live_scorer = LiveScorer(ScoreStore(db), ws_manager, tasks)
+    scores = ScoreStore(db)
+    app.state.scores = scores
+    app.state.live_scorer = LiveScorer(scores, ws_manager, tasks)
+    app.state.dashboard_deps = DashboardDeps(
+        logger=event_logger, scores=scores, ws_manager=ws_manager
+    )
     app.state.deps = CandidateDeps(
         db=db,
         logger=event_logger,
@@ -119,12 +124,9 @@ async def candidate_page() -> FileResponse:
     return FileResponse(_STATIC_DIR / "candidate.html")
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page() -> str:
-    path = _STATIC_DIR / "dashboard.html"
-    if path.exists():
-        return path.read_text(encoding="utf-8")
-    return "<h1>Dashboard</h1><p>Coming on Day 5.</p>"
+@app.get("/dashboard")
+async def dashboard_page() -> FileResponse:
+    return FileResponse(_STATIC_DIR / "dashboard.html")
 
 
 @app.post("/api/session")
@@ -176,29 +178,13 @@ async def get_events(session_id: str, from_seq: int = 0) -> list[dict]:
 
 @app.get("/api/session/{session_id}/scores")
 async def get_scores(session_id: str, phase: str = "final") -> list[dict]:
-    async with app.state.db.read() as conn:
-        cur = await conn.execute(
-            "SELECT session_id, task_id, dimension, phase, score, confidence, evidence, "
-            "updated_at FROM scores WHERE session_id = ? AND phase = ?",
-            (session_id, phase),
-        )
-        rows = await cur.fetchall()
-    cols = [
-        "session_id",
-        "task_id",
-        "dimension",
-        "phase",
-        "score",
-        "confidence",
-        "evidence",
-        "updated_at",
-    ]
-    out = []
-    for r in rows:
-        record = dict(zip(cols, r, strict=True))
-        record["evidence"] = json.loads(record["evidence"])
-        out.append(record)
-    return out
+    return await app.state.scores.list_scores(session_id, phase)
+
+
+@app.get("/api/sessions")
+async def list_sessions() -> list[dict]:
+    rows = await session_store.list_sessions(app.state.db)
+    return [r.model_dump() for r in rows]
 
 
 @app.get("/api/tasks")
@@ -235,5 +221,19 @@ async def candidate_ws(ws: WebSocket, session_id: str) -> None:
     await manager.connect(ws, session_id, "candidate")
     try:
         await CandidateSession(ws, session_id, app.state.deps).run()
+    finally:
+        manager.disconnect(ws)
+
+
+@app.websocket("/ws/dashboard/{session_id}")
+async def dashboard_ws(ws: WebSocket, session_id: str) -> None:
+    session = await session_store.get_session(app.state.db, session_id)
+    if session is None:
+        await ws.close(code=4404)
+        return
+    manager: WSManager = app.state.ws_manager
+    await manager.connect(ws, session_id, "dashboard")
+    try:
+        await DashboardSession(ws, session_id, app.state.dashboard_deps).run()
     finally:
         manager.disconnect(ws)

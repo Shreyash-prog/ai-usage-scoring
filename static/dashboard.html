@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Scoring — Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css" />
+</head>
+<body>
+  <header id="topbar"><span id="title">AI Scoring — Dashboard</span></header>
+
+  <main id="layout">
+    <aside id="sessions">
+      <h2>Sessions</h2>
+      <div class="group-label">Active</div>
+      <ul id="active-list"></ul>
+      <div class="group-label">Completed</div>
+      <ul id="completed-list"></ul>
+    </aside>
+
+    <section id="detail" hidden>
+      <h2 id="detail-title">Session</h2>
+
+      <div class="panel">
+        <h3>Dimensions <span id="phase-tag"></span></h3>
+        <div id="scores"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Replay <span id="replay-pos"></span></h3>
+        <input type="range" id="scrubber" min="0" max="0" value="0" />
+        <div id="replay-panes">
+          <div class="replay-col">
+            <div class="col-label">chat</div>
+            <div id="replay-chat"></div>
+          </div>
+          <div class="replay-col">
+            <div class="col-label">editor</div>
+            <pre id="replay-editor"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Evidence</h3>
+        <div id="evidence"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/static/dashboard.js"></script>
+</body>
+</html>
