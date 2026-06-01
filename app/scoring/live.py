@@ -5,8 +5,11 @@ that task's events and recomputes the three dimensions on the events that can mo
 them, writing phase='live' rows and pushing score.update to dashboard subscribers.
 
 Live scores are heuristic-only, so confidence follows the judge-less branch of §10.4:
-confidence = 0.5 * heuristic_coverage. Updates are debounced to one write per
-dimension per 500ms per task (§9.3), forced through on task submission.
+confidence = 0.5 * heuristic_coverage. Verification/iteration are debounced to one
+write per dimension per 500ms per task (§9.3) — they are driven by higher-frequency
+mixed events — and forced through on task submission. prompt_quality is written
+immediately on every chat.prompt_sent: prompts are low-frequency and human-driven,
+so debouncing them risks dropping the signal for the prompt-driven dimension.
 """
 
 import logging
@@ -97,7 +100,8 @@ class LiveScorer:
         st.prompt_scores.append(score)
         st.prev_prompt_text = payload.get("text", "")
         mean = sum(st.prompt_scores) / len(st.prompt_scores)
-        await self._write(event.session_id, task_id, _PROMPT_QUALITY, mean, st, force=False)
+        # Write immediately (no debounce): prompts are low-frequency and human-driven.
+        await self._write(event.session_id, task_id, _PROMPT_QUALITY, mean, st, force=True)
 
     async def _score_verification_iteration(
         self, event: PersistedEvent, st: _TaskState, task_id: str, force: bool

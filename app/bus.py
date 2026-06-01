@@ -112,7 +112,10 @@ class EventBus:
         return channel.dropped if channel else 0
 
     async def close_session(self, session_id: str) -> None:
-        """Drain the channel, stop the consumer, and release per-session state."""
+        """Drain the channel, stop the consumer, and release per-session state.
+
+        TODO(Day 6): close_session is called by the post-hoc scorer on session.ended.
+        """
         channel = self._channels.get(session_id)
         if channel is not None:
             await channel.close()

@@ -20,7 +20,11 @@ class ScoreStore:
         confidence: float,
         evidence: dict,
     ) -> None:
-        """Insert or replace a score row, keyed by (session, task, dimension, phase)."""
+        """Insert or replace a score row, keyed by (session, task, dimension, phase).
+
+        TODO(Day 6): session-level NULL task_id aggregates handled here (the ON CONFLICT
+        upsert only dedupes non-null task_id; NULLs compare distinct in SQLite).
+        """
         updated_at = int(time.time() * 1000)
         async with self._db.write() as conn:
             await conn.execute(
