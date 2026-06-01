@@ -852,14 +852,14 @@ def aggregate(heuristic_score: float,
     # Combine
     if judge_score is None:
         final = heuristic_score
-        confidence = 0.5 * heuristic_coverage(heuristic_score)
+        confidence = 0.5 * heuristic_coverage(task_events)
     else:
         # Weighted: heuristic 0.4, judge 0.6 (judges are more semantic)
         final = 0.4 * heuristic_score + 0.6 * judge_score
         confidence = (
             0.30                                    # base
             + 0.40 * judge_coverage                 # judge agreement on findings
-            + 0.30 * heuristic_coverage(heuristic_score)
+            + 0.30 * heuristic_coverage(task_events)
         )
 
     return final, clamp(confidence, 0.0, 0.95)
@@ -1294,7 +1294,7 @@ If day 6's pre-flight reveals the judge can't answer reliably, **stop** and eith
 
 ### 18.3 Judge calibration (Day 6 pre-flight)
 
-Hand-label 20 example prompts for each of PQ1–PQ4: known YES/NO. Run judge against them. Accept threshold: ≥80% agreement with human label. Below threshold = the question is too hard for the model OR the prompt is bad.
+Hand-label 20 example prompts for each of PQ1–PQ4: known YES/NO. Run judge against them. Accept threshold: ≥90% agreement with human label (PROVIDER_SPEC §P.5, Sonnet 4.6). Below threshold = the question is too hard for the model OR the prompt is bad.
 
 ### 18.4 Dogfood checklist (Day 7)
 
