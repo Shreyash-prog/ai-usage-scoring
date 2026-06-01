@@ -1,0 +1,45 @@
+[PQ1]
+Read this prompt:
+---
+{prompt_text}
+---
+QUESTION: Does the prompt state a clear, specific goal or ask a clear question?
+A clear goal names what the candidate wants to achieve or what they want answered.
+A vague goal is e.g. 'help me with this'. Respond YES/NO/UNCLEAR.
+
+[PQ2]
+The candidate's most recent code execution before this prompt produced this error:
+---
+{recent_error}
+---
+The candidate then sent this prompt:
+---
+{prompt_text}
+---
+ATTACHED CODE / OUTPUT (may be empty):
+---
+{prompt_attached}
+---
+QUESTION: Does the prompt or its attachments include the specific error message
+or its key details? Respond YES/NO/UNCLEAR.
+
+[PQ3]
+Read this prompt:
+---
+{prompt_text}
+---
+ATTACHED CODE (may be empty):
+---
+{prompt_attached_code}
+---
+QUESTION: Does the prompt include the specific code the candidate is asking about,
+either inline or as an attachment? Respond YES/NO/UNCLEAR.
+
+[PQ4]
+Read this prompt:
+---
+{prompt_text}
+---
+QUESTION: Does the prompt state at least one specific constraint, requirement,
+or context detail (e.g., 'must be O(n)', 'Python 3.11', 'should handle empty input')?
+Respond YES/NO/UNCLEAR.

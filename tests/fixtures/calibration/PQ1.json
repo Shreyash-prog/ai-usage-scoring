@@ -1,0 +1,22 @@
+[
+  {"id": "PQ1-01", "label": "YES", "prompt_text": "Write a function reverse(s) that returns the input string reversed, handling the empty string and single characters."},
+  {"id": "PQ1-02", "label": "YES", "prompt_text": "How do I implement a sliding-window check for whether a permutation of `pattern` appears in `s`, in O(n) time?"},
+  {"id": "PQ1-03", "label": "YES", "prompt_text": "My binary search returns the wrong index for the last element. Can you explain why the `hi = mid` update causes an off-by-one here?"},
+  {"id": "PQ1-04", "label": "YES", "prompt_text": "Please write a Python function that parses this CSV and returns the sum of the 'amount' column, skipping blank rows."},
+  {"id": "PQ1-05", "label": "YES", "prompt_text": "What is the time complexity of using a dict to count character frequencies versus sorting both strings to check for anagrams?"},
+  {"id": "PQ1-06", "label": "YES", "prompt_text": "I need a rate limiter that allows 5 requests per second per user using a token bucket. How should I structure the class?"},
+  {"id": "PQ1-07", "label": "YES", "prompt_text": "Explain why my recursion hits a maximum recursion depth error when n is 10000, and how to convert it to an iterative version."},
+  {"id": "PQ1-08", "label": "YES", "prompt_text": "Write a unit test that verifies find_permutations returns [0, 6] for ('cbaebabacd', 'abc')."},
+  {"id": "PQ1-09", "label": "YES", "prompt_text": "How can I make this function handle unicode strings correctly, specifically multi-byte characters like emoji?"},
+  {"id": "PQ1-10", "label": "YES", "prompt_text": "Refactor this nested loop into a single pass using a hash map so it runs in linear time."},
+  {"id": "PQ1-11", "label": "NO", "prompt_text": "help me with this"},
+  {"id": "PQ1-12", "label": "NO", "prompt_text": "fix it"},
+  {"id": "PQ1-13", "label": "NO", "prompt_text": "this doesn't work, what do I do"},
+  {"id": "PQ1-14", "label": "NO", "prompt_text": "can you just write the whole thing for me"},
+  {"id": "PQ1-15", "label": "NO", "prompt_text": "idk whats wrong"},
+  {"id": "PQ1-16", "label": "NO", "prompt_text": "make it better"},
+  {"id": "PQ1-17", "label": "NO", "prompt_text": "hello"},
+  {"id": "PQ1-18", "label": "NO", "prompt_text": "any ideas?"},
+  {"id": "PQ1-19", "label": "UNCLEAR", "prompt_text": "is this right?"},
+  {"id": "PQ1-20", "label": "UNCLEAR", "prompt_text": "what about edge cases"}
+]

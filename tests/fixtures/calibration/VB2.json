@@ -1,0 +1,22 @@
+[
+  {"id": "VB2-01", "label": "YES", "stdout_stderr": "olleh", "next_prompt": "It printed 'olleh' which is correct, but how do I handle an empty string now?"},
+  {"id": "VB2-02", "label": "YES", "stdout_stderr": "[0, 1, 2]", "next_prompt": "It returned [0, 1, 2] but I expected [0, 6]; why are the extra indices showing up?"},
+  {"id": "VB2-03", "label": "YES", "stdout_stderr": "Traceback ... ZeroDivisionError: division by zero", "next_prompt": "The ZeroDivisionError happens on empty input; how do I guard the division?"},
+  {"id": "VB2-04", "label": "YES", "stdout_stderr": "sum=42", "next_prompt": "42 looks right for this file. Can you make it skip blank rows too?"},
+  {"id": "VB2-05", "label": "YES", "stdout_stderr": "AssertionError on reverse('')", "next_prompt": "The assertion on the empty string failed; should reverse('') return ''?"},
+  {"id": "VB2-06", "label": "YES", "stdout_stderr": "None", "next_prompt": "It printed None — I think I forgot to return. Where do I add the return?"},
+  {"id": "VB2-07", "label": "YES", "stdout_stderr": "True", "next_prompt": "Good, it returned True for the duplicate case. Now what about the no-duplicate case?"},
+  {"id": "VB2-08", "label": "YES", "stdout_stderr": "runtime: 3.2s for n=1000000", "next_prompt": "3.2 seconds is too slow for a million elements; how do I get it under 1s?"},
+  {"id": "VB2-09", "label": "YES", "stdout_stderr": "IndexError: list index out of range", "next_prompt": "Index out of range again — I think the loop goes one past the end."},
+  {"id": "VB2-10", "label": "NO", "stdout_stderr": "olleh", "next_prompt": "now make it handle unicode characters"},
+  {"id": "VB2-11", "label": "NO", "stdout_stderr": "[0, 6]", "next_prompt": "can you add type hints to the function"},
+  {"id": "VB2-12", "label": "NO", "stdout_stderr": "AssertionError", "next_prompt": "write some more tests for this"},
+  {"id": "VB2-13", "label": "NO", "stdout_stderr": "sum=42", "next_prompt": "how would I write this in a more functional style"},
+  {"id": "VB2-14", "label": "NO", "stdout_stderr": "TypeError: 'int' object is not iterable", "next_prompt": "what's the best way to structure a project like this"},
+  {"id": "VB2-15", "label": "NO", "stdout_stderr": "True", "next_prompt": "explain how a token bucket works again"},
+  {"id": "VB2-16", "label": "NO", "stdout_stderr": "12.5", "next_prompt": "rewrite the whole thing using numpy"},
+  {"id": "VB2-17", "label": "UNCLEAR", "stdout_stderr": "olleh", "next_prompt": "(candidate submitted the task; there is no next prompt)"},
+  {"id": "VB2-18", "label": "UNCLEAR", "stdout_stderr": "[0, 6]", "next_prompt": "(candidate submitted the task; there is no next prompt)"},
+  {"id": "VB2-19", "label": "UNCLEAR", "stdout_stderr": "OK", "next_prompt": "ok thanks"},
+  {"id": "VB2-20", "label": "UNCLEAR", "stdout_stderr": "42", "next_prompt": "hmm"}
+]

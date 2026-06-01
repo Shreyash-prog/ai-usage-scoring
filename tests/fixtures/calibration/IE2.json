@@ -1,0 +1,22 @@
+[
+  {"id": "IE2-01", "label": "YES", "response_excerpt": "You could sort both strings and compare them.", "next_prompt": "Sorting seems slow; can I use a hash map to count characters instead?"},
+  {"id": "IE2-02", "label": "YES", "response_excerpt": "Try using recursion to walk the tree.", "next_prompt": "Recursion overflows for deep inputs — let's do it iteratively with a stack."},
+  {"id": "IE2-03", "label": "YES", "response_excerpt": "Use a nested loop to compare every pair.", "next_prompt": "That's O(n^2). What if I use a set for O(n) lookups instead?"},
+  {"id": "IE2-04", "label": "YES", "response_excerpt": "You can read the whole file into memory with read().", "next_prompt": "The file is huge; how do I stream it line by line instead?"},
+  {"id": "IE2-05", "label": "YES", "response_excerpt": "Here's a regex that matches the pattern.", "next_prompt": "Regex feels fragile here. Can I just split on commas and index?"},
+  {"id": "IE2-06", "label": "YES", "response_excerpt": "Store the tokens in a global variable.", "next_prompt": "A global won't be thread-safe. How do I encapsulate state in the class?"},
+  {"id": "IE2-07", "label": "YES", "response_excerpt": "Just catch the exception and ignore it.", "next_prompt": "Swallowing errors is risky; how do I validate the input up front instead?"},
+  {"id": "IE2-08", "label": "YES", "response_excerpt": "Use bubble sort for simplicity.", "next_prompt": "Bubble sort is too slow; let me use the built-in sorted() with a key."},
+  {"id": "IE2-09", "label": "NO", "response_excerpt": "Use a sliding window of size len(pattern).", "next_prompt": "Got it. How do I update the window counts as I slide it forward?"},
+  {"id": "IE2-10", "label": "NO", "response_excerpt": "Add a base case: if n <= 1 return 1.", "next_prompt": "Added the base case. Now how do I memoize the recursive calls?"},
+  {"id": "IE2-11", "label": "NO", "response_excerpt": "Use collections.Counter to count characters.", "next_prompt": "Counter works well. How do I compare two Counters to check for anagrams?"},
+  {"id": "IE2-12", "label": "NO", "response_excerpt": "Return s[::-1] to reverse the string.", "next_prompt": "Slicing works. How do I extend it to reverse only the vowels?"},
+  {"id": "IE2-13", "label": "NO", "response_excerpt": "Guard against empty input by returning [].", "next_prompt": "Added the guard. Now how do I also handle a None argument?"},
+  {"id": "IE2-14", "label": "NO", "response_excerpt": "Use DictReader to parse the CSV.", "next_prompt": "DictReader is clean. How do I sum the 'amount' column from it?"},
+  {"id": "IE2-15", "label": "NO", "response_excerpt": "Use a token bucket with a refill timer.", "next_prompt": "Makes sense. How do I compute how many tokens to add per refill?"},
+  {"id": "IE2-16", "label": "NO", "response_excerpt": "Binary search: set lo=0, hi=len(a).", "next_prompt": "Good. How do I return the insertion index when the target is missing?"},
+  {"id": "IE2-17", "label": "NO", "response_excerpt": "Use a hash map to store seen values.", "next_prompt": "Right. What should I store as the value in that map?"},
+  {"id": "IE2-18", "label": "YES", "response_excerpt": "Here is the full O(n) solution using a deque.", "next_prompt": "Actually, let me step back — can you explain the overall approach first?"},
+  {"id": "IE2-19", "label": "UNCLEAR", "response_excerpt": "Could you clarify what you want?", "next_prompt": "let me think"},
+  {"id": "IE2-20", "label": "UNCLEAR", "response_excerpt": "Here's one option.", "next_prompt": "hmm ok"}
+]

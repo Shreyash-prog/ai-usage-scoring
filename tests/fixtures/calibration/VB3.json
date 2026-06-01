@@ -1,0 +1,22 @@
+[
+  {"id": "VB3-01", "label": "YES", "ai_code": "def reverse(s):\n    return s[::-1]", "executed_code": "def reverse(s):\n    if s is None:\n        return ''\n    return s[::-1]"},
+  {"id": "VB3-02", "label": "YES", "ai_code": "for i in range(len(a)):\n    print(a[i])", "executed_code": "for i in range(len(a)):\n    if a[i] > 0:\n        print(a[i])"},
+  {"id": "VB3-03", "label": "YES", "ai_code": "return sorted(x) == sorted(y)", "executed_code": "from collections import Counter\nreturn Counter(x) == Counter(y)"},
+  {"id": "VB3-04", "label": "YES", "ai_code": "def f(n):\n    return n * f(n-1)", "executed_code": "def f(n):\n    if n <= 1:\n        return 1\n    return n * f(n-1)"},
+  {"id": "VB3-05", "label": "YES", "ai_code": "total = sum(rows)", "executed_code": "total = sum(r['amount'] for r in rows if r)"},
+  {"id": "VB3-06", "label": "YES", "ai_code": "x = [i for i in range(10)]", "executed_code": "x = [i*i for i in range(10) if i % 2 == 0]"},
+  {"id": "VB3-07", "label": "YES", "ai_code": "def find(s, p):\n    return s.index(p)", "executed_code": "def find(s, p):\n    return [i for i in range(len(s)) if s.startswith(p, i)]"},
+  {"id": "VB3-08", "label": "YES", "ai_code": "self.tokens -= 1", "executed_code": "if self.tokens > 0:\n    self.tokens -= 1\nelse:\n    raise RateLimited()"},
+  {"id": "VB3-09", "label": "YES", "ai_code": "return a + b", "executed_code": "return int(a) + int(b)"},
+  {"id": "VB3-10", "label": "NO", "ai_code": "def reverse(s):\n    return s[::-1]", "executed_code": "def reverse(s):\n    return s[::-1]"},
+  {"id": "VB3-11", "label": "NO", "ai_code": "return sorted(x) == sorted(y)", "executed_code": "return sorted(x)==sorted(y)"},
+  {"id": "VB3-12", "label": "NO", "ai_code": "def f(n):\n    if n <= 1:\n        return 1\n    return n * f(n-1)", "executed_code": "def f(n):\n        if n <= 1:\n                return 1\n        return n * f(n-1)"},
+  {"id": "VB3-13", "label": "NO", "ai_code": "x = [i*i for i in range(10)]", "executed_code": "x = [i*i for i in range(10)]\n"},
+  {"id": "VB3-14", "label": "NO", "ai_code": "total = sum(r['amount'] for r in rows if r)", "executed_code": "total = sum(r['amount'] for r in rows if r)  # sum amounts"},
+  {"id": "VB3-15", "label": "NO", "ai_code": "print('OK')", "executed_code": "print('OK')"},
+  {"id": "VB3-16", "label": "NO", "ai_code": "return s.index(p)", "executed_code": "return s.index(p)"},
+  {"id": "VB3-17", "label": "NO", "ai_code": "def add(a, b):\n    return a + b", "executed_code": "def add(a,b):\n    return a+b"},
+  {"id": "VB3-18", "label": "YES", "ai_code": "return [i for i in range(len(s)) if s[i:i+len(p)]==p]", "executed_code": "return next((i for i in range(len(s)) if s[i:i+len(p)]==p), -1)"},
+  {"id": "VB3-19", "label": "UNCLEAR", "ai_code": "# pseudo-code: loop over the array and keep a running max", "executed_code": "best = max(a)"},
+  {"id": "VB3-20", "label": "UNCLEAR", "ai_code": "def solve(): ...", "executed_code": "def solve():\n    return 42"}
+]

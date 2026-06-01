@@ -1,0 +1,22 @@
+[
+  {"id": "VB1-01", "label": "YES", "prompt_text": "Write reverse(s)", "response_excerpt": "def reverse(s):\n    return s[::-1]", "between_events_summary": "editor.paste (source=chat); code.executed exit=0 stdout='olleh'"},
+  {"id": "VB1-02", "label": "YES", "prompt_text": "fix the off-by-one", "response_excerpt": "use range(len(a)) instead of len(a)-1", "between_events_summary": "editor.snapshot; code.executed exit=0 stdout='1 2 3'"},
+  {"id": "VB1-03", "label": "YES", "prompt_text": "add a test", "response_excerpt": "assert reverse('ab') == 'ba'", "between_events_summary": "editor.paste (source=chat); code.executed exit=0 stdout='OK'"},
+  {"id": "VB1-04", "label": "YES", "prompt_text": "optimize this", "response_excerpt": "use a Counter to count frequencies in one pass", "between_events_summary": "code.executed exit=1 stderr='NameError'; editor.snapshot"},
+  {"id": "VB1-05", "label": "YES", "prompt_text": "how do I parse the csv", "response_excerpt": "import csv; use DictReader", "between_events_summary": "editor.paste (source=chat); code.executed exit=0 stdout='sum=42'"},
+  {"id": "VB1-06", "label": "YES", "prompt_text": "implement the bucket refill", "response_excerpt": "def refill(self): self.tokens = self.capacity", "between_events_summary": "code.executed exit=0 stdout='True'"},
+  {"id": "VB1-07", "label": "YES", "prompt_text": "make it iterative", "response_excerpt": "use an explicit stack instead of recursion", "between_events_summary": "editor.snapshot; editor.paste; code.executed exit=0"},
+  {"id": "VB1-08", "label": "YES", "prompt_text": "why is it wrong", "response_excerpt": "your slice should be s[i:i+len(p)]", "between_events_summary": "code.executed exit=0 stdout='[0, 6]'"},
+  {"id": "VB1-09", "label": "YES", "prompt_text": "write the function", "response_excerpt": "here is a one-liner using sorted()", "between_events_summary": "editor.paste (source=chat); code.executed exit=1 stderr='AssertionError'"},
+  {"id": "VB1-10", "label": "YES", "prompt_text": "fix the import", "response_excerpt": "from collections import deque", "between_events_summary": "code.executed exit=0 stdout=''"},
+  {"id": "VB1-11", "label": "NO", "prompt_text": "write reverse(s)", "response_excerpt": "def reverse(s):\n    return s[::-1]", "between_events_summary": "chat.prompt_sent ('now make it handle unicode')"},
+  {"id": "VB1-12", "label": "NO", "prompt_text": "give me the whole solution", "response_excerpt": "here is the complete function ...", "between_events_summary": "task.submitted final_code=<the AI code verbatim>"},
+  {"id": "VB1-13", "label": "NO", "prompt_text": "how do I sort", "response_excerpt": "use list.sort() or sorted()", "between_events_summary": "editor.paste (source=chat); chat.prompt_sent ('now reverse it')"},
+  {"id": "VB1-14", "label": "NO", "prompt_text": "explain anagrams", "response_excerpt": "two strings are anagrams if sorted(a) == sorted(b)", "between_events_summary": "chat.prompt_sent ('write the code then')"},
+  {"id": "VB1-15", "label": "NO", "prompt_text": "fix it", "response_excerpt": "change the comparison operator", "between_events_summary": "editor.snapshot; chat.prompt_sent ('still broken')"},
+  {"id": "VB1-16", "label": "NO", "prompt_text": "the rate limiter class", "response_excerpt": "class Bucket: ...", "between_events_summary": "task.submitted"},
+  {"id": "VB1-17", "label": "NO", "prompt_text": "what about edge cases", "response_excerpt": "handle empty input by returning []", "between_events_summary": "chat.prompt_sent ('and negative numbers?')"},
+  {"id": "VB1-18", "label": "NO", "prompt_text": "write the test", "response_excerpt": "assert f(2) == 4", "between_events_summary": "editor.paste (source=chat); task.submitted"},
+  {"id": "VB1-19", "label": "UNCLEAR", "prompt_text": "help", "response_excerpt": "could you clarify what you're trying to do?", "between_events_summary": "(no events recorded)"},
+  {"id": "VB1-20", "label": "UNCLEAR", "prompt_text": "thanks", "response_excerpt": "you're welcome!", "between_events_summary": "editor.snapshot"}
+]

@@ -1,0 +1,41 @@
+[VB1]
+The candidate sent this prompt:
+---
+{prompt_text}
+---
+The AI responded with (excerpt):
+---
+{response_excerpt}
+---
+Then, before the candidate's next prompt or task submission, these events occurred (in order):
+---
+{between_events_summary}
+---
+QUESTION: Did the candidate execute code after receiving this AI response and
+before their next interaction? Respond YES/NO/UNCLEAR.
+
+[VB2]
+After this AI response, the candidate ran code and got this output:
+---
+{stdout_stderr}
+---
+The candidate's next prompt was:
+---
+{next_prompt}
+---
+QUESTION: Does the candidate's next prompt show that they read the output
+(e.g., references the output, addresses what happened, mentions a specific value)?
+Respond YES/NO/UNCLEAR. If there is no next prompt because they submitted, answer UNCLEAR.
+
+[VB3]
+The AI provided this code:
+---
+{ai_code}
+---
+The code the candidate next executed was:
+---
+{executed_code}
+---
+QUESTION: Is the executed code meaningfully different from the AI code,
+beyond trivial whitespace? 'Meaningful' = added/changed/removed at least one line
+of logic. Respond YES/NO/UNCLEAR.

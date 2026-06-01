@@ -1,0 +1,22 @@
+[
+  {"id": "IE1-01", "label": "YES", "prompt_1": "Write a function reverse(s) that reverses a string.", "prompt_2": "Now write a test that checks reverse('') returns ''."},
+  {"id": "IE1-02", "label": "YES", "prompt_1": "How do I count character frequencies?", "prompt_2": "Great, now how do I compare two frequency dicts for equality?"},
+  {"id": "IE1-03", "label": "YES", "prompt_1": "Parse the CSV and sum the amount column.", "prompt_2": "How do I make it skip rows where amount is blank?"},
+  {"id": "IE1-04", "label": "YES", "prompt_1": "Implement the token bucket class.", "prompt_2": "How do I make the bucket thread-safe across workers?"},
+  {"id": "IE1-05", "label": "YES", "prompt_1": "Why does my recursion overflow at n=10000?", "prompt_2": "Show me the iterative version using an explicit stack."},
+  {"id": "IE1-06", "label": "YES", "prompt_1": "Find all indices where a permutation of pattern occurs.", "prompt_2": "What's the time complexity of that sliding-window approach?"},
+  {"id": "IE1-07", "label": "YES", "prompt_1": "Write a binary search over the sorted list.", "prompt_2": "Now adapt it to find the leftmost insertion point."},
+  {"id": "IE1-08", "label": "YES", "prompt_1": "How do I read the file line by line?", "prompt_2": "Now how do I handle a file that doesn't exist?"},
+  {"id": "IE1-09", "label": "YES", "prompt_1": "Make the function handle unicode.", "prompt_2": "What about adding type hints to the signature?"},
+  {"id": "IE1-10", "label": "YES", "prompt_1": "Explain why this is O(n^2).", "prompt_2": "Rewrite it to be O(n) with a hash map."},
+  {"id": "IE1-11", "label": "NO", "prompt_1": "Write a function to reverse a string.", "prompt_2": "Can you write a function that reverses a string?"},
+  {"id": "IE1-12", "label": "NO", "prompt_1": "How do I parse this CSV file?", "prompt_2": "How can I parse the CSV?"},
+  {"id": "IE1-13", "label": "NO", "prompt_1": "fix it", "prompt_2": "please fix it"},
+  {"id": "IE1-14", "label": "NO", "prompt_1": "Why doesn't my sort work?", "prompt_2": "Why is my sorting not working?"},
+  {"id": "IE1-15", "label": "NO", "prompt_1": "Implement the rate limiter.", "prompt_2": "Can you implement the rate limiter for me?"},
+  {"id": "IE1-16", "label": "NO", "prompt_1": "Make it faster.", "prompt_2": "Make this run faster please."},
+  {"id": "IE1-17", "label": "NO", "prompt_1": "Help me with the permutation function.", "prompt_2": "Help me with the permutations function."},
+  {"id": "IE1-18", "label": "NO", "prompt_1": "What's wrong with my code?", "prompt_2": "What is wrong with this code?"},
+  {"id": "IE1-19", "label": "UNCLEAR", "prompt_1": "Can you help with the function?", "prompt_2": "And the edge cases?"},
+  {"id": "IE1-20", "label": "UNCLEAR", "prompt_1": "ok", "prompt_2": "what about now"}
+]

@@ -1,0 +1,22 @@
+[
+  {"id": "PQ4-01", "label": "YES", "prompt_text": "Write reverse(s) but it must run in O(n) time and not use slicing."},
+  {"id": "PQ4-02", "label": "YES", "prompt_text": "Implement find_permutations with time complexity better than O(n*m*m!)."},
+  {"id": "PQ4-03", "label": "YES", "prompt_text": "Parse the CSV, but it should handle empty input and skip rows where 'amount' is missing."},
+  {"id": "PQ4-04", "label": "YES", "prompt_text": "Build the rate limiter for exactly 5 requests per second per user."},
+  {"id": "PQ4-05", "label": "YES", "prompt_text": "This needs to work on Python 3.11 and not depend on any third-party packages."},
+  {"id": "PQ4-06", "label": "YES", "prompt_text": "Sort the list in place without allocating a second array."},
+  {"id": "PQ4-07", "label": "YES", "prompt_text": "The function must return an empty list (not None) when given an empty string."},
+  {"id": "PQ4-08", "label": "YES", "prompt_text": "Make it thread-safe; multiple workers will call increment() concurrently."},
+  {"id": "PQ4-09", "label": "YES", "prompt_text": "Handle inputs up to 10^6 elements within 1 second."},
+  {"id": "PQ4-10", "label": "YES", "prompt_text": "Keep memory constant — O(1) extra space, no copying the input."},
+  {"id": "PQ4-11", "label": "NO", "prompt_text": "Write a function to reverse a string."},
+  {"id": "PQ4-12", "label": "NO", "prompt_text": "Can you help me sort this list?"},
+  {"id": "PQ4-13", "label": "NO", "prompt_text": "How do I parse a CSV in Python?"},
+  {"id": "PQ4-14", "label": "NO", "prompt_text": "Explain how a token bucket works."},
+  {"id": "PQ4-15", "label": "NO", "prompt_text": "Make this code cleaner."},
+  {"id": "PQ4-16", "label": "NO", "prompt_text": "Why is my function slow?"},
+  {"id": "PQ4-17", "label": "NO", "prompt_text": "Give me a function that checks for anagrams."},
+  {"id": "PQ4-18", "label": "NO", "prompt_text": "Write some tests for this."},
+  {"id": "PQ4-19", "label": "UNCLEAR", "prompt_text": "Make it fast."},
+  {"id": "PQ4-20", "label": "UNCLEAR", "prompt_text": "It should be efficient and correct."}
+]

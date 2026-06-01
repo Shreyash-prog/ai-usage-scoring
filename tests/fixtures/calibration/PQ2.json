@@ -1,0 +1,22 @@
+[
+  {"id": "PQ2-01", "label": "YES", "recent_error": "ZeroDivisionError: division by zero", "prompt_text": "I'm getting ZeroDivisionError: division by zero on line 4. How do I guard against an empty list?", "prompt_attached": ""},
+  {"id": "PQ2-02", "label": "YES", "recent_error": "IndexError: list index out of range", "prompt_text": "Why do I get IndexError: list index out of range when the input has fewer than 3 items?", "prompt_attached": ""},
+  {"id": "PQ2-03", "label": "YES", "recent_error": "TypeError: unsupported operand type(s) for +: 'int' and 'str'", "prompt_text": "Got TypeError: unsupported operand type(s) for +: 'int' and 'str'. Where should I cast?", "prompt_attached": ""},
+  {"id": "PQ2-04", "label": "YES", "recent_error": "KeyError: 'amount'", "prompt_text": "Here is the traceback.", "prompt_attached": "Traceback (most recent call last): KeyError: 'amount'"},
+  {"id": "PQ2-05", "label": "YES", "recent_error": "AssertionError", "prompt_text": "My test fails with AssertionError on reverse(''). What's the expected behavior for empty input?", "prompt_attached": ""},
+  {"id": "PQ2-06", "label": "YES", "recent_error": "NameError: name 'undefinedx' is not defined", "prompt_text": "I see NameError: name 'undefinedx' is not defined. I think I misspelled a variable; here's the function.", "prompt_attached": "def f():\n    return undefinedx"},
+  {"id": "PQ2-07", "label": "YES", "recent_error": "RecursionError: maximum recursion depth exceeded", "prompt_text": "RecursionError: maximum recursion depth exceeded — how do I make this iterative?", "prompt_attached": ""},
+  {"id": "PQ2-08", "label": "YES", "recent_error": "ValueError: invalid literal for int() with base 10: 'abc'", "prompt_text": "ValueError: invalid literal for int() with base 10: 'abc' — how to skip non-numeric rows?", "prompt_attached": ""},
+  {"id": "PQ2-09", "label": "YES", "recent_error": "IndentationError: unexpected indent", "prompt_text": "fix this", "prompt_attached": "  File line 3\n    IndentationError: unexpected indent"},
+  {"id": "PQ2-10", "label": "NO", "recent_error": "ZeroDivisionError: division by zero", "prompt_text": "why doesn't this work?", "prompt_attached": ""},
+  {"id": "PQ2-11", "label": "NO", "recent_error": "IndexError: list index out of range", "prompt_text": "can you fix my function please", "prompt_attached": ""},
+  {"id": "PQ2-12", "label": "NO", "recent_error": "TypeError: 'NoneType' object is not iterable", "prompt_text": "make it work", "prompt_attached": ""},
+  {"id": "PQ2-13", "label": "NO", "recent_error": "KeyError: 'name'", "prompt_text": "I think there's a bug somewhere in the parsing logic, help", "prompt_attached": ""},
+  {"id": "PQ2-14", "label": "NO", "recent_error": "AssertionError", "prompt_text": "is my approach correct overall?", "prompt_attached": ""},
+  {"id": "PQ2-15", "label": "NO", "recent_error": "AttributeError: 'list' object has no attribute 'split'", "prompt_text": "rewrite this to be cleaner", "prompt_attached": ""},
+  {"id": "PQ2-16", "label": "NO", "recent_error": "SyntaxError: invalid syntax", "prompt_text": "what's a better algorithm for this problem", "prompt_attached": ""},
+  {"id": "PQ2-17", "label": "NO", "recent_error": "OverflowError: math range error", "prompt_text": "how do I add type hints to this", "prompt_attached": ""},
+  {"id": "PQ2-18", "label": "YES", "recent_error": "StopIteration", "prompt_text": "It raised StopIteration when the generator was exhausted. How should I handle the end of iteration?", "prompt_attached": ""},
+  {"id": "PQ2-19", "label": "UNCLEAR", "recent_error": "IndexError: list index out of range", "prompt_text": "the index thing again", "prompt_attached": ""},
+  {"id": "PQ2-20", "label": "UNCLEAR", "recent_error": "ValueError: too many values to unpack", "prompt_text": "I think it's the unpacking", "prompt_attached": ""}
+]

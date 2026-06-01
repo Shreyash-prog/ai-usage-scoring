@@ -1,0 +1,22 @@
+[
+  {"id": "PQ3-01", "label": "YES", "prompt_text": "Why does this loop skip the last element?\n```\nfor i in range(len(a)-1):\n    print(a[i])\n```", "prompt_attached_code": ""},
+  {"id": "PQ3-02", "label": "YES", "prompt_text": "Here is my function, what's wrong with the base case?", "prompt_attached_code": "def fact(n):\n    return n * fact(n-1)"},
+  {"id": "PQ3-03", "label": "YES", "prompt_text": "Can you optimize this?\n```python\ndef dup(xs):\n    for i in xs:\n        if xs.count(i) > 1: return True\n    return False\n```", "prompt_attached_code": ""},
+  {"id": "PQ3-04", "label": "YES", "prompt_text": "Explain what this regex does", "prompt_attached_code": "import re\npat = re.compile(r'^\\d{3}-\\d{4}$')"},
+  {"id": "PQ3-05", "label": "YES", "prompt_text": "My reverse function below returns None instead of the string. Why?", "prompt_attached_code": "def reverse(s):\n    s[::-1]"},
+  {"id": "PQ3-06", "label": "YES", "prompt_text": "Here's the class I'm working on:\n```\nclass Bucket:\n    def __init__(self, n): self.n = n\n```\nHow do I add a refill method?", "prompt_attached_code": ""},
+  {"id": "PQ3-07", "label": "YES", "prompt_text": "What does line 2 do here?", "prompt_attached_code": "total = 0\ntotal += sum(x for x in rows if x)"},
+  {"id": "PQ3-08", "label": "YES", "prompt_text": "Is this comprehension equivalent to the loop?\n```\nresult = [f(x) for x in items if x > 0]\n```", "prompt_attached_code": ""},
+  {"id": "PQ3-09", "label": "YES", "prompt_text": "Review this snippet for bugs", "prompt_attached_code": "def find(s, p):\n    return [i for i in range(len(s)) if s[i:i+len(p)] == p]"},
+  {"id": "PQ3-10", "label": "YES", "prompt_text": "improve\n```\nx=[]\nfor i in range(10): x.append(i*i)\n```", "prompt_attached_code": ""},
+  {"id": "PQ3-11", "label": "NO", "prompt_text": "How do I reverse a linked list in general?", "prompt_attached_code": ""},
+  {"id": "PQ3-12", "label": "NO", "prompt_text": "What's the difference between a list and a tuple?", "prompt_attached_code": ""},
+  {"id": "PQ3-13", "label": "NO", "prompt_text": "My code isn't working, any idea why?", "prompt_attached_code": ""},
+  {"id": "PQ3-14", "label": "NO", "prompt_text": "Explain Big-O notation to me.", "prompt_attached_code": ""},
+  {"id": "PQ3-15", "label": "NO", "prompt_text": "How should I structure a token bucket rate limiter?", "prompt_attached_code": ""},
+  {"id": "PQ3-16", "label": "NO", "prompt_text": "what's the fastest sort", "prompt_attached_code": ""},
+  {"id": "PQ3-17", "label": "NO", "prompt_text": "should I use recursion or iteration here", "prompt_attached_code": ""},
+  {"id": "PQ3-18", "label": "NO", "prompt_text": "give me an example of a decorator", "prompt_attached_code": ""},
+  {"id": "PQ3-19", "label": "UNCLEAR", "prompt_text": "is the function above correct", "prompt_attached_code": ""},
+  {"id": "PQ3-20", "label": "UNCLEAR", "prompt_text": "what about the helper I mentioned", "prompt_attached_code": ""}
+]

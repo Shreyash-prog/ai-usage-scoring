@@ -1,0 +1,25 @@
+[IE1]
+Read these two consecutive prompts from the same task:
+---
+PROMPT 1:
+{prompt_1}
+
+PROMPT 2:
+{prompt_2}
+---
+QUESTION: Do these two prompts address substantively different sub-problems,
+or is prompt 2 essentially re-asking prompt 1? Respond YES (different) /
+NO (same/re-ask) / UNCLEAR.
+
+[IE2]
+The AI's response to the candidate's prompt was (excerpt):
+---
+{response_excerpt}
+---
+The candidate's NEXT prompt was:
+---
+{next_prompt}
+---
+QUESTION: Did the candidate change their approach or topic in the next prompt
+(suggesting the AI response wasn't useful), or continue down the same path?
+Respond YES (changed) / NO (continued same path) / UNCLEAR.
