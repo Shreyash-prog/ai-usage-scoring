@@ -44,6 +44,26 @@ async def create_session(
     return session_id
 
 
+async def set_current_task_idx(db: Database, session_id: str, idx: int) -> None:
+    async with db.write() as conn:
+        await conn.execute(
+            "UPDATE sessions SET current_task_idx = ? WHERE id = ?",
+            (idx, session_id),
+        )
+        await conn.commit()
+
+
+async def end_session(db: Database, session_id: str) -> None:
+    """Mark a session ended (idempotent: only transitions from 'active')."""
+    ended_at = int(time.time() * 1000)
+    async with db.write() as conn:
+        await conn.execute(
+            "UPDATE sessions SET status = 'ended', ended_at = ? WHERE id = ? AND status = 'active'",
+            (ended_at, session_id),
+        )
+        await conn.commit()
+
+
 async def get_session(db: Database, session_id: str) -> SessionRow | None:
     async with db.read() as conn:
         cur = await conn.execute(

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Scoring — Candidate</title>
+  <link rel="stylesheet" href="/static/candidate.css" />
+  <!-- Monaco AMD loader (classic script; defines window.require before the module runs). -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+</head>
+<body>
+  <header id="topbar">
+    <span id="title">AI Scoring Demo</span>
+    <span id="candidate-label"></span>
+    <span id="task-progress"></span>
+    <span id="status-banner"></span>
+    <button id="end-session-btn">End session</button>
+  </header>
+
+  <main id="layout">
+    <section id="left">
+      <div class="panel" id="task-panel">
+        <h2>Task</h2>
+        <div id="task-body">Connecting…</div>
+        <button id="submit-task-btn" disabled>Submit task</button>
+      </div>
+
+      <div class="panel" id="code-panel">
+        <h2>Code</h2>
+        <div id="editor"></div>
+        <div class="row">
+          <button id="run-btn" disabled>Run</button>
+          <button id="run-tests-btn" disabled>Run tests</button>
+        </div>
+      </div>
+
+      <div class="panel" id="output-panel">
+        <h2>Output</h2>
+        <pre id="output"></pre>
+      </div>
+    </section>
+
+    <section id="right">
+      <div class="panel" id="chat-panel">
+        <h2>Chat with AI</h2>
+        <div id="chat-log"></div>
+        <div class="row" id="attach-row">
+          <label><input type="checkbox" id="attach-editor" /> attach editor</label>
+          <label><input type="checkbox" id="attach-output" /> attach output</label>
+        </div>
+        <textarea id="chat-input" rows="3" placeholder="Your message…" disabled></textarea>
+        <button id="send-btn" disabled>Send</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/static/candidate.js"></script>
+</body>
+</html>

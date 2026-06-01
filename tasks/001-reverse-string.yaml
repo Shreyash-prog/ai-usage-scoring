@@ -1,0 +1,25 @@
+id: "001"
+title: "Reverse a String"
+type: "code"
+description_md: |
+  Write a function `reverse(s: str) -> str` that returns the input string
+  reversed.
+
+  Example: `reverse("hello")` → `"olleh"`.
+
+  This is a trivial placeholder task used only for UI/plumbing testing during
+  development. The three real tasks are authored on Day 7.
+starter_code: |
+  def reverse(s: str) -> str:
+      # your code here
+      pass
+test_code: |
+  assert reverse("hello") == "olleh"
+  assert reverse("") == ""
+  assert reverse("a") == "a"
+  print("OK")
+time_limit_minutes: 10
+baseline_prompts: 3
+expected_signals:
+  recent_error_likely: false
+  ai_codeblock_likely: true
