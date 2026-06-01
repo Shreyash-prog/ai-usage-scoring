@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     # Storage
     db_path: str = "./events.db"
     tasks_dir: str = "./tasks"
+    # Default 3-task session (difficulty order); task 000 (reverse) is dev-only.
+    default_task_sequence: list[str] = ["001", "002", "003"]
 
     # OpenAI (chat)
     openai_api_key: str  # required, from .env

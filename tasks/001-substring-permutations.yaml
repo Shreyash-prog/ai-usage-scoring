@@ -1,0 +1,25 @@
+id: "001"
+title: "Substring Permutations"
+type: "code"
+description_md: |
+  Write a function `find_permutations(s: str, pattern: str) -> list[int]` that
+  returns all starting indices in `s` where some permutation of `pattern`
+  appears as a substring.
+
+  Example: `find_permutations("cbaebabacd", "abc")` -> `[0, 6]`.
+
+  Aim for time complexity better than O(n*m*m!).
+starter_code: |
+  def find_permutations(s: str, pattern: str) -> list[int]:
+      # your code here
+      pass
+test_code: |
+  assert find_permutations("cbaebabacd", "abc") == [0, 6]
+  assert find_permutations("abab", "ab") == [0, 1, 2]
+  assert find_permutations("", "a") == []
+  print("OK")
+time_limit_minutes: 15
+baseline_prompts: 3
+expected_signals:
+  recent_error_likely: true
+  ai_codeblock_likely: true

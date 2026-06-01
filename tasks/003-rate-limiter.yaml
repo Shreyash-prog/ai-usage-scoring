@@ -1,0 +1,34 @@
+id: "003"
+title: "Rate Limiter — Design"
+type: "design"
+description_md: |
+  Design and implement a `RateLimiter`.
+
+  - `RateLimiter(max_calls: int, per_seconds: float)`
+  - `allow() -> bool` returns `True` if the current call is permitted and `False`
+    if it would exceed the limit.
+
+  A call beyond the limit within the window should be rejected. There is more than
+  one reasonable design here — think about the tradeoffs and be ready to justify
+  your choice. The requirements are deliberately light; if something is ambiguous,
+  say what you'd assume.
+starter_code: |
+  class RateLimiter:
+      def __init__(self, max_calls: int, per_seconds: float):
+          # your design here
+          ...
+
+      def allow(self) -> bool:
+          ...
+test_code: |
+  # Smoke test only — full timing behavior is out of scope and hard to test.
+  rl = RateLimiter(max_calls=2, per_seconds=60)
+  assert rl.allow() is True
+  assert rl.allow() is True
+  assert rl.allow() is False   # third call within the window is rejected
+  print("OK")
+time_limit_minutes: 15
+baseline_prompts: 5
+expected_signals:
+  recent_error_likely: false
+  ai_codeblock_likely: true

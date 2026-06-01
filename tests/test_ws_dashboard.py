@@ -40,7 +40,9 @@ def client(tmp_path, monkeypatch):
 
 
 def _seed_session(client: TestClient) -> str:
-    session_id = client.post("/api/session", json={"candidate_name": "Dash"}).json()["session_id"]
+    session_id = client.post(
+        "/api/session", json={"candidate_name": "Dash", "task_sequence": ["001"]}
+    ).json()["session_id"]
     with client.websocket_connect(f"/ws/session/{session_id}") as ws:
         ws.send_json({"type": "hello", "last_seq": 0})
         ws.receive_json()  # task.presented

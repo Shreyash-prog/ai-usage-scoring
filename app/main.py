@@ -139,7 +139,7 @@ async def create_session(body: SessionCreate) -> dict:
         raise HTTPException(status_code=503, detail="Chat AI unavailable")
 
     tasks: TaskStore = app.state.tasks
-    sequence = body.task_sequence or tasks.ids()
+    sequence = body.task_sequence or settings.default_task_sequence
     if not sequence:
         raise HTTPException(status_code=400, detail="No tasks available")
     missing = [t for t in sequence if tasks.get(t) is None]

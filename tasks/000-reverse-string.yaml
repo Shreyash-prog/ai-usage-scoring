@@ -1,14 +1,14 @@
-id: "001"
+id: "000"
 title: "Reverse a String"
 type: "code"
 description_md: |
   Write a function `reverse(s: str) -> str` that returns the input string
   reversed.
 
-  Example: `reverse("hello")` → `"olleh"`.
+  Example: `reverse("hello")` -> `"olleh"`.
 
-  This is a trivial placeholder task used only for UI/plumbing testing during
-  development. The three real tasks are authored on Day 7.
+  Trivial placeholder used only for UI/plumbing testing during development. Not in
+  the default session sequence; pass an explicit task_sequence to use it.
 starter_code: |
   def reverse(s: str) -> str:
       # your code here

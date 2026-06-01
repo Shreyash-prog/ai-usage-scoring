@@ -45,7 +45,7 @@ def client(tmp_path, monkeypatch):
 
 
 def test_candidate_end_to_end(client: TestClient) -> None:
-    resp = client.post("/api/session", json={"candidate_name": "Tester"})
+    resp = client.post("/api/session", json={"candidate_name": "Tester", "task_sequence": ["001"]})
     assert resp.status_code == 200
     session_id = resp.json()["session_id"]
     assert resp.json()["task_sequence"] == ["001"]

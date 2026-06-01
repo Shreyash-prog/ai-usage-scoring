@@ -1,0 +1,39 @@
+id: "002"
+title: "CSV Total — Debug"
+type: "debug"
+description_md: |
+  The function `total_amount()` below is supposed to return the sum of the
+  `amount` column in the CSV data — the correct total is **725**. It's broken.
+
+  Run it, read what happens, and fix it. Keep the data and structure as-is; the
+  bug is small.
+starter_code: |
+  import csv
+  import io
+
+  DATA = """id,name,amount
+  1,Alice,100
+  2,Bob,250
+  3,Carol,75
+  4,Dave,300
+  """
+
+
+  def total_amount() -> int:
+      reader = csv.reader(io.StringIO(DATA))
+      rows = list(reader)
+      total = 0
+      for row in rows[1:]:          # skip the header row
+          total += int(row[1])      # add up the amount column
+      return total
+
+
+  print(total_amount())
+test_code: |
+  assert total_amount() == 725, f"expected 725, got {total_amount()}"
+  print("OK")
+time_limit_minutes: 15
+baseline_prompts: 4
+expected_signals:
+  recent_error_likely: true
+  ai_codeblock_likely: true

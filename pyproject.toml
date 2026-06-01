@@ -41,6 +41,9 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "live: tests that hit real external APIs (skipped in CI via -m 'not live')",
+]
 
 [tool.mypy]
 python_version = "3.12"
