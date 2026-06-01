@@ -278,6 +278,9 @@ class PostHocScorer:
         task_finals: dict[str, dict[str, float]],
     ) -> None:
         """Count-weighted mean across tasks, weight = number of events (§10.1 step 3)."""
+        # Carry event seqs so the dashboard's headline (session) bars still get
+        # clickable evidence citations, not just the per-task rows.
+        all_seqs = sorted(e.seq for evs in by_task.values() for e in evs)
         for dim in _DIMENSIONS:
             total_w = 0
             acc = 0.0
@@ -288,7 +291,11 @@ class PostHocScorer:
             if total_w == 0:
                 continue
             score = acc / total_w
-            evidence = {"session_aggregate": True, "tasks": list(task_finals)}
+            evidence = {
+                "session_aggregate": True,
+                "tasks": list(task_finals),
+                "heuristic": {"event_seqs": all_seqs},
+            }
             await self._scores.upsert(session_id, None, dim, "final", score, 0.5, evidence)
             await self._push_score(session_id, None, dim, score, 0.5, evidence)
 
