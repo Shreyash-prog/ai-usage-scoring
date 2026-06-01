@@ -36,6 +36,8 @@ QUESTION: Does the prompt include the specific code the candidate is asking abou
 either inline or as an attachment? Respond YES/NO/UNCLEAR.
 
 [PQ4]
+# TODO(v0.1): consider tightening — a bare language/runtime tag ("in Python") is a
+# weak signal; may require a context detail beyond language/runtime tags. Not now.
 Read this prompt:
 ---
 {prompt_text}

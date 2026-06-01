@@ -11,7 +11,7 @@
   {"id": "PQ4-10", "label": "YES", "prompt_text": "Keep memory constant — O(1) extra space, no copying the input."},
   {"id": "PQ4-11", "label": "NO", "prompt_text": "Write a function to reverse a string."},
   {"id": "PQ4-12", "label": "NO", "prompt_text": "Can you help me sort this list?"},
-  {"id": "PQ4-13", "label": "NO", "prompt_text": "How do I parse a CSV in Python?"},
+  {"id": "PQ4-13", "label": "YES", "prompt_text": "How do I parse a CSV in Python?"},
   {"id": "PQ4-14", "label": "NO", "prompt_text": "Explain how a token bucket works."},
   {"id": "PQ4-15", "label": "NO", "prompt_text": "Make this code cleaner."},
   {"id": "PQ4-16", "label": "NO", "prompt_text": "Why is my function slow?"},

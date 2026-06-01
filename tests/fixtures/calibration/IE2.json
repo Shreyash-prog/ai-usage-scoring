@@ -16,7 +16,7 @@
   {"id": "IE2-15", "label": "NO", "response_excerpt": "Use a token bucket with a refill timer.", "next_prompt": "Makes sense. How do I compute how many tokens to add per refill?"},
   {"id": "IE2-16", "label": "NO", "response_excerpt": "Binary search: set lo=0, hi=len(a).", "next_prompt": "Good. How do I return the insertion index when the target is missing?"},
   {"id": "IE2-17", "label": "NO", "response_excerpt": "Use a hash map to store seen values.", "next_prompt": "Right. What should I store as the value in that map?"},
-  {"id": "IE2-18", "label": "YES", "response_excerpt": "Here is the full O(n) solution using a deque.", "next_prompt": "Actually, let me step back — can you explain the overall approach first?"},
+  {"id": "IE2-18", "label": "NO", "response_excerpt": "Here is the full O(n) solution using a deque.", "next_prompt": "Actually, let me step back — can you explain the overall approach first?"},
   {"id": "IE2-19", "label": "UNCLEAR", "response_excerpt": "Could you clarify what you want?", "next_prompt": "let me think"},
   {"id": "IE2-20", "label": "UNCLEAR", "response_excerpt": "Here's one option.", "next_prompt": "hmm ok"}
 ]

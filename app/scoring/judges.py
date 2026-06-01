@@ -39,6 +39,8 @@ def _load_templates(filename: str) -> dict[str, str]:
                 templates[current] = "\n".join(buf).strip()
             current = m.group(1)
             buf = []
+        elif line.lstrip().startswith("#"):
+            continue  # comment line — never sent to the model
         elif current is not None:
             buf.append(line)
     if current is not None:

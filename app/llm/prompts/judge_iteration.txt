@@ -20,6 +20,9 @@ The candidate's NEXT prompt was:
 ---
 {next_prompt}
 ---
-QUESTION: Did the candidate change their approach or topic in the next prompt
-(suggesting the AI response wasn't useful), or continue down the same path?
-Respond YES (changed) / NO (continued same path) / UNCLEAR.
+QUESTION: Did the candidate's next prompt propose a substantively different technical
+approach, data structure, algorithm, or strategy than what the AI just suggested?
+Examples of YES: switching from a loop to a hash map, from synchronous to streaming,
+from one library to another, from one design pattern to another. NO means they
+continued refining the same approach the AI proposed.
+Respond YES (different approach) / NO (refining same approach) / UNCLEAR.
