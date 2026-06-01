@@ -123,7 +123,7 @@ Update this checklist as each day completes:
 - [x] **Day 2 — Sandbox.** Python subprocess runner with rlimits, timeout, output truncation. Tests.
 - [x] **Day 3 — WS plumbing + Candidate UI shell.** WSManager, candidate WS handler, basic candidate.html with editor + chat + run.
 - [x] **Day 4 — EventBus + Live Scoring.** Per-session asyncio queues, LiveScorer with all three heuristic formulas.
-- [ ] **Day 5 — Dashboard.** dashboard.html with session list, detail view, live score bars, replay scrubber.
+- [x] **Day 5 — Dashboard.** dashboard.html with session list, detail view, live score bars, replay scrubber.
 - [ ] **Day 6 — Post-hoc judge.** AnthropicJudgeClient with forced tool use. All judge questions. Calibration pre-flight on 20 hand-labeled fixtures (must hit ≥90%).
 - [ ] **Day 7 — Tasks + polish + dogfood.** Three task YAMLs. End-to-end self-test. README. Fix top 5 bugs.
 
