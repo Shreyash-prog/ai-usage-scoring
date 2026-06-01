@@ -272,6 +272,12 @@ function initEditor() {
       minimap: { enabled: false },
       fontSize: 13,
     });
+    // If a task was presented before Monaco finished loading, apply its starter
+    // code now (otherwise the editor would come up empty — see Day 5 replay bug).
+    if (state.currentTask && state.currentTask.starter_code) {
+      state.editor.setValue(state.currentTask.starter_code);
+      state.lastSnapshotText = state.currentTask.starter_code;
+    }
     state.editor.onDidChangeModelContent(onEditorChange);
 
     // Paste-source detection: capture the raw clipboard text on the editor node.
