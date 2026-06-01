@@ -28,9 +28,15 @@ def client(tmp_path, monkeypatch):
             yield ChatChunk(text=piece, done=False, model="fake")
         yield ChatChunk(text="", done=True, prompt_tokens=3, completion_tokens=2, model="fake")
 
+    async def fake_judge(self, prompt: str, temperature: float = 0.1):
+        from app.llm.judge_client import JudgeAnswer
+
+        return JudgeAnswer(answer="YES", evidence="stub")
+
     monkeypatch.setattr(OpenAIChatClient, "health", fake_health)
     monkeypatch.setattr(AnthropicJudgeClient, "health", fake_health)
     monkeypatch.setattr(OpenAIChatClient, "chat_stream", fake_stream)
+    monkeypatch.setattr(AnthropicJudgeClient, "judge", fake_judge)  # no real judge calls in tests
 
     from app.main import app
 

@@ -23,9 +23,15 @@ def client(tmp_path, monkeypatch):
         )
         yield ChatChunk(text="", done=True, prompt_tokens=4, completion_tokens=8, model="f")
 
+    async def fake_judge(self, prompt: str, temperature: float = 0.1):
+        from app.llm.judge_client import JudgeAnswer
+
+        return JudgeAnswer(answer="YES", evidence="stub")
+
     monkeypatch.setattr(OpenAIChatClient, "health", fake_health)
     monkeypatch.setattr(AnthropicJudgeClient, "health", fake_health)
     monkeypatch.setattr(OpenAIChatClient, "chat_stream", fake_stream)
+    monkeypatch.setattr(AnthropicJudgeClient, "judge", fake_judge)  # no real judge calls in tests
 
     from app.main import app
 
@@ -52,9 +58,10 @@ def _seed_session(client: TestClient) -> str:
         ws.receive_json()
         ws.send_json({"type": "task.submit", "final_code": "x = 1"})
         ws.receive_json()
-    # let the bus consumer flush live scores
-    for _ in range(15):
-        if client.get(f"/api/session/{session_id}/scores", params={"phase": "live"}).json():
+    # Wait for post-hoc scoring (triggered on submit) to finish, so the dashboard
+    # replay is deterministic and not interleaved with concurrent score broadcasts.
+    for _ in range(50):
+        if client.get(f"/api/session/{session_id}").json()["status"] == "scored":
             break
         time.sleep(0.1)
     return session_id

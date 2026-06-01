@@ -64,6 +64,12 @@ async def end_session(db: Database, session_id: str) -> None:
         await conn.commit()
 
 
+async def mark_scored(db: Database, session_id: str) -> None:
+    async with db.write() as conn:
+        await conn.execute("UPDATE sessions SET status = 'scored' WHERE id = ?", (session_id,))
+        await conn.commit()
+
+
 async def list_sessions(db: Database) -> list[SessionRow]:
     """All sessions, most recently started first (for the dashboard list, §15.3)."""
     async with db.read() as conn:

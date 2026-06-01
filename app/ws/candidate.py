@@ -8,6 +8,7 @@ arrives on Day 4, so for now we persist and reply directly to the candidate.
 Multi-turn chat memory lives here, not in the LLM client (§7.2).
 """
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ from app.bus import EventBus
 from app.llm.chat_client import ChatMessage, OpenAIChatClient
 from app.models.events import EventType, PersistedEvent
 from app.sandbox.runner import Sandbox
+from app.scoring.posthoc import PostHocScorer
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
@@ -36,6 +38,7 @@ class CandidateDeps:
     tasks: TaskStore
     ws_manager: WSManager
     bus: EventBus
+    posthoc: PostHocScorer
     system_prompt: str
 
 
@@ -139,6 +142,9 @@ class CandidateSession:
         await self._emit(EventType.SESSION_ENDED, {})
         await session_store.end_session(self._d.db, self._sid)
         await self._ws.send_json({"type": "session.done"})
+        # Spawn post-hoc scoring in the background (§10.1); it drains + closes the
+        # bus session when done. The candidate loop returns immediately after this.
+        asyncio.create_task(self._d.posthoc.score_session(self._sid))
 
     # --- editor events ----------------------------------------------------
 

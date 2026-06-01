@@ -22,6 +22,7 @@ from app.llm.judge_client import AnthropicJudgeClient
 from app.models.events import EventType, PersistedEvent
 from app.sandbox.runner import Sandbox
 from app.scoring.live import LiveScorer
+from app.scoring.posthoc import PostHocScorer
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
@@ -93,6 +94,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.dashboard_deps = DashboardDeps(
         logger=event_logger, scores=scores, ws_manager=ws_manager
     )
+    posthoc = PostHocScorer(db, event_logger, judge, scores, tasks, ws_manager, bus)
+    app.state.posthoc = posthoc
     app.state.deps = CandidateDeps(
         db=db,
         logger=event_logger,
@@ -101,6 +104,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         tasks=tasks,
         ws_manager=ws_manager,
         bus=bus,
+        posthoc=posthoc,
         system_prompt=system_prompt,
     )
     app.state.health = health
