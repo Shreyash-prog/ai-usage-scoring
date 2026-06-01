@@ -117,6 +117,11 @@ Whenever you finish a logical chunk, run **lint + tests** before committing. Don
 
 Source plan: `ai_usage_scoring_spec.md` §17 (with provider tweaks from `PROVIDER_SPEC.md` §P.5).
 
+**v0 status: complete — see [`FINDINGS.md`](FINDINGS.md).** All 7 days done; §20
+done-definition satisfied; judge calibration ≥90% on all 9 questions. Dogfood
+surfaced one design issue (Iteration Efficiency inverts good vs careless) documented
+in FINDINGS. Next step is more sessions / external eyes, not v0.1 redesign.
+
 Update this checklist as each day completes:
 
 - [x] **Day 1 — Foundations.** uv project, settings, schema, EventLogger, OpenAI + Anthropic clients with health checks.
