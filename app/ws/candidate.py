@@ -14,8 +14,9 @@ from dataclasses import dataclass
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from app.bus import EventBus
 from app.llm.chat_client import ChatMessage, OpenAIChatClient
-from app.models.events import EventType
+from app.models.events import EventType, PersistedEvent
 from app.sandbox.runner import Sandbox
 from app.storage import sessions as session_store
 from app.storage.db import Database
@@ -34,6 +35,7 @@ class CandidateDeps:
     chat: OpenAIChatClient
     tasks: TaskStore
     ws_manager: WSManager
+    bus: EventBus
     system_prompt: str
 
 
@@ -101,8 +103,7 @@ class CandidateSession:
         self._last_snapshot_code = None
         self._last_output = None
 
-        await self._d.logger.write(
-            self._sid,
+        await self._emit(
             EventType.TASK_PRESENTED,
             {"task_id": task_id, "task_idx": idx},
             task_id=task_id,
@@ -119,8 +120,7 @@ class CandidateSession:
     async def _on_submit(self, msg: dict) -> None:
         final_code = msg.get("final_code", "")
         duration_ms = int(time.time() * 1000) - self._task_started_ms
-        await self._d.logger.write(
-            self._sid,
+        await self._emit(
             EventType.TASK_SUBMITTED,
             {"task_id": self._task_id, "final_code": final_code, "duration_ms": duration_ms},
             task_id=self._task_id,
@@ -136,7 +136,7 @@ class CandidateSession:
             await self._end_session()
 
     async def _end_session(self) -> None:
-        await self._d.logger.write(self._sid, EventType.SESSION_ENDED, {})
+        await self._emit(EventType.SESSION_ENDED, {})
         await session_store.end_session(self._d.db, self._sid)
         await self._ws.send_json({"type": "session.done"})
 
@@ -145,8 +145,7 @@ class CandidateSession:
     async def _on_snapshot(self, msg: dict) -> None:
         code = msg.get("code", "")
         self._last_snapshot_code = code
-        event = await self._d.logger.write(
-            self._sid,
+        event = await self._emit(
             EventType.EDITOR_SNAPSHOT,
             {
                 "code": code,
@@ -164,8 +163,7 @@ class CandidateSession:
         source_hint = msg.get("source_hint", "unknown")
         if source_hint not in ("chat", "external", "unknown"):
             source_hint = "unknown"
-        event = await self._d.logger.write(
-            self._sid,
+        event = await self._emit(
             EventType.EDITOR_PASTE,
             {"text": text, "source_hint": source_hint, "char_count": len(text)},
             task_id=self._task_id,
@@ -179,8 +177,7 @@ class CandidateSession:
         stdin = msg.get("stdin")
         result = await self._d.sandbox.run_python(code, stdin=stdin)
         self._last_output = (result.stdout + result.stderr).strip() or None
-        await self._d.logger.write(
-            self._sid,
+        await self._emit(
             EventType.CODE_EXECUTED,
             {
                 "code": code,
@@ -210,8 +207,7 @@ class CandidateSession:
         attached_code = self._last_snapshot_code if msg.get("attach_editor") else None
         attached_output = self._last_output if msg.get("attach_output") else None
 
-        prompt_event = await self._d.logger.write(
-            self._sid,
+        prompt_event = await self._emit(
             EventType.CHAT_PROMPT_SENT,
             {"text": text, "attached_code": attached_code, "attached_output": attached_output},
             task_id=self._task_id,
@@ -236,8 +232,7 @@ class CandidateSession:
                     await self._ws.send_json({"type": "chat.token", "text": chunk.text})
         except Exception as exc:
             logger.exception("Chat stream failed for session %s", self._sid)
-            await self._d.logger.write(
-                self._sid,
+            await self._emit(
                 EventType.CHAT_ERROR,
                 {"error": str(exc), "after_prompt_seq": prompt_event.seq},
                 task_id=self._task_id,
@@ -249,8 +244,7 @@ class CandidateSession:
 
         latency_ms = int((time.monotonic() - started) * 1000)
         self._conversation.append(ChatMessage(role="assistant", content=full_text))
-        await self._d.logger.write(
-            self._sid,
+        await self._emit(
             EventType.CHAT_RESPONSE_RECEIVED,
             {
                 "text": full_text,
@@ -288,6 +282,14 @@ class CandidateSession:
             return
         system, rest = self._conversation[0], self._conversation[1:]
         self._conversation = [system, *rest[-limit:]]
+
+    async def _emit(
+        self, event_type: EventType, payload: dict, task_id: str | None = None
+    ) -> PersistedEvent:
+        """Persist an event (assigns seq) then publish it to the bus (§8.2)."""
+        event = await self._d.logger.write(self._sid, event_type, payload, task_id=task_id)
+        await self._d.bus.publish(event)
+        return event
 
     async def _ack(self, seq: int, event_type: str) -> None:
         await self._ws.send_json({"type": "ack", "seq": seq, "event_type": event_type})

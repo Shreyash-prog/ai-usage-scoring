@@ -16,14 +16,17 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.bus import EventBus
 from app.config import settings
 from app.llm.chat_client import OpenAIChatClient
 from app.llm.judge_client import AnthropicJudgeClient
-from app.models.events import EventType
+from app.models.events import EventType, PersistedEvent
 from app.sandbox.runner import Sandbox
+from app.scoring.live import LiveScorer
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
+from app.storage.scores import ScoreStore
 from app.storage.tasks import TaskStore
 from app.ws.candidate import CandidateDeps, CandidateSession
 from app.ws.manager import WSManager
@@ -38,6 +41,17 @@ _PROMPTS_DIR = Path(__file__).parent / "llm" / "prompts"
 class SessionCreate(BaseModel):
     candidate_name: str
     task_sequence: list[str] | None = None
+
+
+def _dashboard_forwarder(ws_manager: WSManager, session_id: str):
+    """A bus subscriber that mirrors each persisted event to dashboard watchers (§12.3)."""
+
+    async def forward(event: PersistedEvent) -> None:
+        await ws_manager.broadcast_dashboard(
+            session_id, {"type": "event", "event": event.model_dump(mode="json")}
+        )
+
+    return forward
 
 
 @asynccontextmanager
@@ -63,19 +77,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     health = {"openai": await chat.health(), "anthropic": await judge.health()}
     logger.info("Startup health: %s", health)
 
+    ws_manager = WSManager()
+    event_logger = EventLogger(db)
+    bus = EventBus()
     app.state.db = db
-    app.state.event_logger = EventLogger(db)
+    app.state.event_logger = event_logger
     app.state.tasks = tasks
     app.state.chat = chat
     app.state.judge = judge
-    app.state.ws_manager = WSManager()
+    app.state.ws_manager = ws_manager
+    app.state.bus = bus
+    app.state.live_scorer = LiveScorer(ScoreStore(db), ws_manager, tasks)
     app.state.deps = CandidateDeps(
         db=db,
-        logger=app.state.event_logger,
+        logger=event_logger,
         sandbox=Sandbox(),
         chat=chat,
         tasks=tasks,
-        ws_manager=app.state.ws_manager,
+        ws_manager=ws_manager,
+        bus=bus,
         system_prompt=system_prompt,
     )
     app.state.health = health
@@ -121,11 +141,17 @@ async def create_session(body: SessionCreate) -> dict:
         raise HTTPException(status_code=400, detail=f"Unknown task(s): {missing}")
 
     session_id = await session_store.create_session(app.state.db, body.candidate_name, sequence)
-    await app.state.event_logger.write(
+
+    # Wire scoring + dashboard fan-out for this session, then publish session.started.
+    bus: EventBus = app.state.bus
+    bus.subscribe(session_id, app.state.live_scorer.handle_event)
+    bus.subscribe(session_id, _dashboard_forwarder(app.state.ws_manager, session_id))
+    started = await app.state.event_logger.write(
         session_id,
         EventType.SESSION_STARTED,
         {"candidate_name": body.candidate_name, "task_sequence": sequence},
     )
+    await bus.publish(started)
     return {
         "session_id": session_id,
         "candidate_name": body.candidate_name,
