@@ -1,0 +1,40 @@
+# fly.toml — Fly.io config for ai-usage-scoring.
+# Phase 3 artifact: NOT deployed yet (that's Phase 4). See deploy/README.md.
+
+# PLACEHOLDER: set to your real Fly app name (created via `fly apps create <name>`).
+app = "ai-usage-scoring"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DB_PATH = "/data/events.db"
+  TASKS_DIR = "/app/tasks"
+  # Trust X-Forwarded-For: we're behind Fly's edge proxy, so the real client IP
+  # is in XFF. This is required for per-IP rate limiting to key on the right IP.
+  TRUST_PROXY_HEADERS = "true"
+
+# Persistent SQLite volume. Create once with:
+#   fly volumes create ai_usage_data --region ord --size 1
+[[mounts]]
+  source = "ai_usage_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/healthz"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
