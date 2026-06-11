@@ -222,6 +222,44 @@ tests cover each cap and both rate limiters; the existing end-to-end test still 
 (caps don't break the happy path). No Judge0/LLM spend — session creation makes no model
 calls.
 
+### Phase 3 — Containerization + Fly.io config (artifacts only, not deployed)
+
+**What changed.** Added the build artifacts to ship to Fly: a multi-stage
+[`Dockerfile`](Dockerfile), [`.dockerignore`](.dockerignore), [`fly.toml`](fly.toml),
+[`docker-entrypoint.sh`](docker-entrypoint.sh), and a [`deploy/README.md`](deploy/README.md)
+runbook. No deploy happened — that's Phase 4.
+
+- **Image.** Stage 1 installs runtime deps into a venv with uv (`uv sync --frozen
+  --no-dev --no-install-project` — deps only, project imported from source via
+  `PYTHONPATH`, no hatchling build needed); stage 2 (`python:3.12-slim`) copies the venv
+  + `app/`/`static/`/`tasks/`. The default `DB_PATH=/data/events.db` and
+  `TASKS_DIR=/app/tasks` are baked as ENV; locally they fall back to the repo-relative
+  defaults. Rootfs is effectively read-only at runtime; only the `/data` volume is written.
+- **Config.** No code change was needed for env overrides — pydantic-settings already
+  maps `DB_PATH`/`TASKS_DIR`/`TRUST_PROXY_HEADERS` to the matching fields (no direct
+  `os.environ` reads, per the dual-account rule). `db.py` now `mkdir(parents=True,
+  exist_ok=True)`s the DB's parent so an empty Fly volume works on first boot.
+- **Non-root + volume ownership (the wrinkle).** Fly mounts the volume root-owned on
+  first boot, but we want the app to run unprivileged. Resolution: the container starts as
+  root so `docker-entrypoint.sh` can `chown /data`, then drops to UID 1000 via `gosu`
+  before exec'ing uvicorn. The *app process* is non-root; only the brief entrypoint is
+  root. Documented in the runbook with the alternative (run fully as root) called out.
+- **`fly.toml`.** `shared-cpu-1x` / 256 MB (smallest, flagged as tight — bump to 512 MB if
+  it OOMs), scale-to-zero (`min_machines_running = 0`), `force_https`, a `/api/healthz`
+  check (30s interval, 30s grace), the `ai_usage_data` → `/data` mount, and
+  `TRUST_PROXY_HEADERS=true` so per-IP limits key on the real XFF client IP behind Fly.
+
+**Tests.** `test_deploy.py` asserts config honors `DB_PATH`/`TASKS_DIR`/`TRUST_PROXY_HEADERS`
+env overrides and falls back to local defaults, plus a `@pytest.mark.docker` image-build
+test (excluded from the default gate, skipped without Docker). CI now runs
+`pytest -m "not live and not docker"`.
+
+**Honest gap.** Docker isn't installed on this dev machine, so I could **not** build the
+image to verify the Dockerfile end-to-end. It's reasoned carefully but unproven; the build
+test will run in Phase 4 (and CI on a runner with Docker, if we choose to enable it).
+First real deploy must watch for: the volume-ownership chown working, 256 MB not OOMing,
+and `/data/events.db` being writable as UID 1000.
+
 ---
 
 ## 6. Security housekeeping (TODO list — clear before/at end of migration)
