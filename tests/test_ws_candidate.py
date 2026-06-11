@@ -1,11 +1,12 @@
 """Candidate WS integration test (main spec §12.2, Day 3 end-to-end).
 
 Drives the real app via Starlette's TestClient: create session, then over the
-WebSocket exercise task.presented -> snapshot ack -> code.run (real sandbox) ->
+WebSocket exercise task.presented -> snapshot ack -> code.run (mocked sandbox) ->
 chat (mocked stream) -> task.submit -> session.done.
 
-The OpenAI/Anthropic clients are monkeypatched so the test never hits the network:
-`health()` returns True and `chat_stream` yields canned chunks.
+The OpenAI/Anthropic clients and the Judge0 sandbox are monkeypatched so the test
+never hits the network: `health()` returns True, `chat_stream` yields canned
+chunks, and `run_python` returns a canned ExecResult.
 """
 
 import pytest
@@ -14,6 +15,7 @@ from fastapi.testclient import TestClient
 from app.config import settings
 from app.llm.chat_client import ChatChunk, OpenAIChatClient
 from app.llm.judge_client import AnthropicJudgeClient
+from app.sandbox.runner import ExecResult, Sandbox
 
 
 @pytest.fixture
@@ -33,10 +35,14 @@ def client(tmp_path, monkeypatch):
 
         return JudgeAnswer(answer="YES", evidence="stub")
 
+    async def fake_run_python(self, code, stdin=None, timeout_s=None, mem_limit_mb=None):
+        return ExecResult(stdout="4\n", stderr="", exit_code=0, runtime_ms=1, truncated=False)
+
     monkeypatch.setattr(OpenAIChatClient, "health", fake_health)
     monkeypatch.setattr(AnthropicJudgeClient, "health", fake_health)
     monkeypatch.setattr(OpenAIChatClient, "chat_stream", fake_stream)
     monkeypatch.setattr(AnthropicJudgeClient, "judge", fake_judge)  # no real judge calls in tests
+    monkeypatch.setattr(Sandbox, "run_python", fake_run_python)  # no real Judge0 calls in tests
 
     from app.main import app
 

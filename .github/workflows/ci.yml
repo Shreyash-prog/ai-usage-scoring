@@ -14,6 +14,7 @@ jobs:
       # only mocked tests, so no real API calls are made (and no credits spent).
       OPENAI_API_KEY: sk-ci-dummy
       ANTHROPIC_API_KEY: sk-ant-ci-dummy
+      JUDGE0_API_KEY: judge0-ci-dummy
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
