@@ -13,6 +13,7 @@ dependencies = [
     "anthropic>=0.30",
     "pyyaml>=6.0",
     "python-multipart>=0.0.9",
+    "httpx>=0.27",  # Judge0 client (also FastAPI TestClient + SDK transitive dep)
 ]
 
 [project.optional-dependencies]
@@ -22,7 +23,6 @@ dev = [
     "pytest-cov>=4.1",
     "ruff>=0.4",
     "mypy>=1.10",
-    "httpx>=0.27",  # required by FastAPI TestClient (also a transitive dep of the SDKs)
 ]
 
 [build-system]

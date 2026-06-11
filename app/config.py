@@ -34,10 +34,16 @@ class Settings(BaseSettings):
     anthropic_judge_max_retries: int = 1
     anthropic_judge_temperature: float = 0.1
 
-    # Sandbox
+    # Sandbox (Judge0 hosted execution — see PROVIDER_SPEC / deployment migration)
     exec_timeout_s: int = 10
     exec_mem_limit_mb: int = 256
     exec_output_limit_kb: int = 1024
+
+    # Judge0 (hosted code execution; replaces local subprocess for public deploy)
+    judge0_api_key: str  # required, from .env (RapidAPI key for judge0-ce)
+    judge0_endpoint: str = "https://judge0-ce.p.rapidapi.com"
+    judge0_language_id: int = 71  # Python 3.8 on the free CE tier
+    judge0_request_timeout_s: int = 30
 
     # Scoring
     live_score_debounce_ms: int = 500
