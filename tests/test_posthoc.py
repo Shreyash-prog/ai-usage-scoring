@@ -23,7 +23,14 @@ class FakeJudge:
     def __init__(self) -> None:
         self.call_count = 0
 
-    async def judge(self, prompt: str, temperature: float = 0.1) -> JudgeAnswer:
+    async def judge(
+        self,
+        prompt: str,
+        temperature: float = 0.1,
+        *,
+        session_id: str | None = None,
+        purpose: str = "judge",
+    ) -> JudgeAnswer:
         self.call_count += 1
         return JudgeAnswer(answer="YES", evidence="stub")
 

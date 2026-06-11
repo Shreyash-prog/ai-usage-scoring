@@ -30,7 +30,9 @@ def client(tmp_path, monkeypatch):
             yield ChatChunk(text=piece, done=False, model="fake")
         yield ChatChunk(text="", done=True, prompt_tokens=3, completion_tokens=2, model="fake")
 
-    async def fake_judge(self, prompt: str, temperature: float = 0.1):
+    async def fake_judge(
+        self, prompt: str, temperature: float = 0.1, *, session_id=None, purpose="judge"
+    ):
         from app.llm.judge_client import JudgeAnswer
 
         return JudgeAnswer(answer="YES", evidence="stub")
