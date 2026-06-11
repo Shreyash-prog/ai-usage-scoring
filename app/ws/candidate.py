@@ -16,10 +16,13 @@ from dataclasses import dataclass
 from fastapi import WebSocket, WebSocketDisconnect
 
 from app.bus import EventBus
+from app.config import settings
 from app.llm.chat_client import ChatMessage, OpenAIChatClient
 from app.models.events import EventType, PersistedEvent
+from app.ratelimit import client_ip_ws, ws_chat_limiter, ws_run_limiter
 from app.sandbox.runner import Sandbox
 from app.scoring.posthoc import PostHocScorer
+from app.storage import llm_calls
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
@@ -54,6 +57,7 @@ class CandidateSession:
         self._task_started_ms: int = 0
         self._last_snapshot_code: str | None = None
         self._last_output: str | None = None
+        self._ip = client_ip_ws(ws)  # for per-IP WS rate limiting (Phase 2)
 
     async def run(self) -> None:
         """Receive-loop until the socket closes or the session ends."""
@@ -64,13 +68,19 @@ class CandidateSession:
                 if kind == "hello":
                     await self._present_current_task()
                 elif kind == "chat.send":
-                    await self._on_chat(msg)
+                    if ws_chat_limiter.allow(self._ip, settings.ratelimit_chat_per_minute, 60):
+                        await self._on_chat(msg)
+                    else:
+                        await self._rate_limited("chat")
                 elif kind == "editor.snapshot":
                     await self._on_snapshot(msg)
                 elif kind == "editor.paste":
                     await self._on_paste(msg)
                 elif kind == "code.run":
-                    await self._on_run(msg)
+                    if ws_run_limiter.allow(self._ip, settings.ratelimit_runs_per_minute, 60):
+                        await self._on_run(msg)
+                    else:
+                        await self._rate_limited("run")
                 elif kind == "task.submit":
                     await self._on_submit(msg)
                 elif kind == "session.end":
@@ -179,6 +189,22 @@ class CandidateSession:
     # --- code execution ---------------------------------------------------
 
     async def _on_run(self, msg: dict) -> None:
+        # Per-session execution cap (§P.6.1 public addition): count durable
+        # CODE_EXECUTED events so a reconnect can't reset the budget.
+        executed = await self._d.logger.count_session_events(self._sid, EventType.CODE_EXECUTED)
+        if executed >= settings.session_max_code_executions:
+            logger.warning("Session %s hit code-execution cap", self._sid)
+            await self._ws.send_json(
+                {
+                    "type": "exec.result",
+                    "stdout": "",
+                    "stderr": "session execution limit reached",
+                    "exit_code": -1,
+                    "runtime_ms": 0,
+                }
+            )
+            return
+
         code = msg.get("code", "")
         stdin = msg.get("stdin")
         result = await self._d.sandbox.run_python(code, stdin=stdin)
@@ -209,6 +235,18 @@ class CandidateSession:
     # --- chat -------------------------------------------------------------
 
     async def _on_chat(self, msg: dict) -> None:
+        # Per-session chat-token cap (§P.6.1): refuse before spending another call.
+        tokens_in = await llm_calls.session_chat_tokens_in(self._d.db, self._sid)
+        if tokens_in >= settings.session_max_chat_tokens_in:
+            logger.warning("Session %s hit chat-token cap (%d)", self._sid, tokens_in)
+            await self._ws.send_json(
+                {
+                    "type": "chat.capped",
+                    "message": "This session has reached its AI usage limit.",
+                }
+            )
+            return
+
         text = msg.get("text", "")
         attached_code = self._last_snapshot_code if msg.get("attach_editor") else None
         attached_output = self._last_output if msg.get("attach_output") else None
@@ -243,12 +281,34 @@ class CandidateSession:
                 {"error": str(exc), "after_prompt_seq": prompt_event.seq},
                 task_id=self._task_id,
             )
+            await llm_calls.record_llm_call(
+                self._d.db,
+                self._sid,
+                "openai",
+                model or settings.openai_chat_model,
+                "chat",
+                prompt_tokens,
+                completion_tokens,
+                int((time.monotonic() - started) * 1000),
+                "error",
+            )
             await self._ws.send_json({"type": "chat.error", "error": "AI unavailable — try again"})
             # Drop the unanswered user turn so history stays consistent.
             self._conversation.pop()
             return
 
         latency_ms = int((time.monotonic() - started) * 1000)
+        await llm_calls.record_llm_call(
+            self._d.db,
+            self._sid,
+            "openai",
+            model or settings.openai_chat_model,
+            "chat",
+            prompt_tokens,
+            completion_tokens,
+            latency_ms,
+            "ok",
+        )
         self._conversation.append(ChatMessage(role="assistant", content=full_text))
         await self._emit(
             EventType.CHAT_RESPONSE_RECEIVED,
@@ -281,8 +341,6 @@ class CandidateSession:
         return "".join(parts)
 
     def _trim_history(self) -> None:
-        from app.config import settings
-
         limit = settings.openai_chat_max_history_messages
         if len(self._conversation) <= limit + 1:  # +1 for the system message
             return
@@ -299,3 +357,13 @@ class CandidateSession:
 
     async def _ack(self, seq: int, event_type: str) -> None:
         await self._ws.send_json({"type": "ack", "seq": seq, "event_type": event_type})
+
+    async def _rate_limited(self, scope: str) -> None:
+        logger.warning("Rate-limited %s on session %s from ip=%s", scope, self._sid, self._ip)
+        await self._ws.send_json(
+            {
+                "type": "rate_limited",
+                "scope": scope,
+                "message": "You're doing that too fast — please slow down.",
+            }
+        )

@@ -25,6 +25,7 @@ from app.scoring.heuristics import (
     verification_heuristic,
 )
 from app.scoring.judges import JudgeResult, judge_question
+from app.storage import llm_calls
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
@@ -94,18 +95,27 @@ class PostHocScorer:
             if e.task_id is not None:
                 by_task.setdefault(e.task_id, []).append(e)
 
+        # cost_capped (§P.6.1): seed True if the session already blew the chat-token
+        # cap; _run_judges flips it on if it has to truncate judge scheduling.
+        chat_tokens = await llm_calls.session_chat_tokens_in(self._db, session_id)
+        flags = {"cost_capped": chat_tokens >= settings.session_max_chat_tokens_in}
+
         task_finals: dict[str, dict[str, float]] = {}
         for task_id, task_events in by_task.items():
-            task_finals[task_id] = await self._score_task(session_id, task_id, task_events)
+            task_finals[task_id] = await self._score_task(session_id, task_id, task_events, flags)
 
-        await self._write_session_aggregate(session_id, by_task, task_finals)
+        await self._write_session_aggregate(session_id, by_task, task_finals, flags)
         await session_store.mark_scored(self._db, session_id)
         await self._ws.broadcast_dashboard(
             session_id, {"type": "profile.final", "session_id": session_id}
         )
 
     async def _score_task(
-        self, session_id: str, task_id: str, task_events: list[PersistedEvent]
+        self,
+        session_id: str,
+        task_id: str,
+        task_events: list[PersistedEvent],
+        flags: dict[str, bool],
     ) -> dict[str, float]:
         task = self._tasks.get(task_id)
         heuristics = {
@@ -113,7 +123,7 @@ class PostHocScorer:
             "verification": verification_heuristic(task_events),
             "iteration": iteration_heuristic(task_events, task) if task else 70.0,
         }
-        judge_by_dim = await self._run_judges(task_events)
+        judge_by_dim = await self._run_judges(session_id, task_events, flags)
 
         finals: dict[str, float] = {}
         for dim in _DIMENSIONS:
@@ -136,6 +146,7 @@ class PostHocScorer:
                 ],
                 "final_score": round(final, 2),
                 "confidence": round(confidence, 2),
+                "cost_capped": flags["cost_capped"],
             }
             await self._scores.upsert(
                 session_id, task_id, dim, "final", final, confidence, evidence
@@ -174,15 +185,26 @@ class PostHocScorer:
                 prev_text = _text(e)
         return sum(scores) / len(scores)
 
-    async def _run_judges(self, task_events: list[PersistedEvent]) -> dict[str, list[JudgeResult]]:
+    async def _run_judges(
+        self, session_id: str, task_events: list[PersistedEvent], flags: dict[str, bool]
+    ) -> dict[str, list[JudgeResult]]:
         prompts = [e for e in task_events if e.type == EventType.CHAT_PROMPT_SENT]
         responses = [e for e in task_events if e.type == EventType.CHAT_RESPONSE_RECEIVED]
         execs = [e for e in task_events if e.type == EventType.CODE_EXECUTED]
         sem = asyncio.Semaphore(_JUDGE_CONCURRENCY)
         jobs: list = []
 
+        # Enforce the §P.6.1 judge caps from durable llm_calls counts: per-session
+        # (already-recorded judge calls for this session) and the global daily ceiling.
+        session_judged = await llm_calls.session_judge_call_count(self._db, session_id)
+        global_judged = await llm_calls.global_judge_calls_today(self._db)
+
         def schedule(qid: str, seq: int, **fields: str) -> None:
-            if self._judge.call_count + len(jobs) >= settings.session_max_judge_calls:
+            if (
+                session_judged + len(jobs) >= settings.session_max_judge_calls
+                or global_judged + len(jobs) >= settings.global_max_judge_calls_per_day
+            ):
+                flags["cost_capped"] = True
                 return  # cost cap (§P.6.1)
             jobs.append((qid, seq, fields))
 
@@ -250,7 +272,7 @@ class PostHocScorer:
 
         async def run(qid: str, seq: int, fields: dict) -> JudgeResult:
             async with sem:
-                return await judge_question(self._judge, qid, seq, **fields)
+                return await judge_question(self._judge, qid, seq, session_id=session_id, **fields)
 
         results = await asyncio.gather(*[run(q, s, f) for q, s, f in jobs])
         from app.scoring.judges import QUESTION_DIMENSION
@@ -276,6 +298,7 @@ class PostHocScorer:
         session_id: str,
         by_task: dict[str, list[PersistedEvent]],
         task_finals: dict[str, dict[str, float]],
+        flags: dict[str, bool],
     ) -> None:
         """Count-weighted mean across tasks, weight = number of events (§10.1 step 3)."""
         # Carry event seqs so the dashboard's headline (session) bars still get
@@ -295,6 +318,7 @@ class PostHocScorer:
                 "session_aggregate": True,
                 "tasks": list(task_finals),
                 "heuristic": {"event_seqs": all_seqs},
+                "cost_capped": flags["cost_capped"],
             }
             await self._scores.upsert(session_id, None, dim, "final", score, 0.5, evidence)
             await self._push_score(session_id, None, dim, score, 0.5, evidence)

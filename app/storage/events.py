@@ -115,6 +115,16 @@ class EventLogger:
             rows = await cur.fetchall()
         return [self._row_to_event(r) for r in rows]
 
+    async def count_session_events(self, session_id: str, type: EventType) -> int:
+        """Count persisted events of one type for a session (Phase 2 exec cap)."""
+        async with self._db.read() as conn:
+            cur = await conn.execute(
+                "SELECT COUNT(*) FROM events WHERE session_id = ? AND type = ?",
+                (session_id, type.value),
+            )
+            row = await cur.fetchone()
+        return int(row[0]) if row else 0
+
     async def get_task_events(self, session_id: str, task_id: str) -> list[PersistedEvent]:
         """Return all events tagged with `task_id`, ordered by `seq`."""
         async with self._db.read() as conn:

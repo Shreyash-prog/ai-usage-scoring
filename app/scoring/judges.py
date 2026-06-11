@@ -83,10 +83,14 @@ def build_prompt(qid: str, **fields: str) -> str:
 
 
 async def judge_question(
-    client: AnthropicJudgeClient, qid: str, target_seq: int, **fields: str
+    client: AnthropicJudgeClient,
+    qid: str,
+    target_seq: int,
+    session_id: str | None = None,
+    **fields: str,
 ) -> JudgeResult:
     prompt = build_prompt(qid, **fields)
-    answer = await client.judge(prompt)
+    answer = await client.judge(prompt, session_id=session_id, purpose=f"judge:{qid}")
     return JudgeResult(
         question_id=qid, answer=answer.answer, evidence=answer.evidence, target_seq=target_seq
     )
