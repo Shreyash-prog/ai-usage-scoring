@@ -10,19 +10,23 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, HTTPException, Request, Response, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.bus import EventBus
 from app.config import settings
 from app.llm.chat_client import OpenAIChatClient
 from app.llm.judge_client import AnthropicJudgeClient
 from app.models.events import EventType, PersistedEvent
+from app.ratelimit import limiter, sessions_per_hour_limit
 from app.sandbox.runner import Sandbox
 from app.scoring.live import LiveScorer
 from app.scoring.posthoc import PostHocScorer
+from app.storage import llm_calls
 from app.storage import sessions as session_store
 from app.storage.db import Database
 from app.storage.events import EventLogger
@@ -72,6 +76,32 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings.anthropic_judge_timeout_s,
         settings.anthropic_judge_max_retries,
     )
+
+    # Cost logging: every judge call records to llm_calls so the §P.6.1 judge caps
+    # are enforced from durable state (the DB isn't available at client construction).
+    async def _judge_cost_sink(
+        session_id: str,
+        provider: str,
+        model: str,
+        purpose: str,
+        prompt_tokens: int,
+        completion_tokens: int,
+        latency_ms: int,
+        status: str,
+    ) -> None:
+        await llm_calls.record_llm_call(
+            db,
+            session_id,
+            provider,
+            model,
+            purpose,
+            prompt_tokens,
+            completion_tokens,
+            latency_ms,
+            status,
+        )
+
+    judge.set_cost_sink(_judge_cost_sink)
     system_prompt = (_PROMPTS_DIR / "system_chat.txt").read_text(encoding="utf-8")
 
     # Startup health (PROVIDER_SPEC §P.3.5). Server starts regardless.
@@ -115,6 +145,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="AI Usage Scoring", lifespan=lifespan)
+# Per-IP rate limiting (Phase 2). The limiter + handler are registered at import so
+# tests can toggle `limiter.enabled` before the app starts.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 
@@ -134,9 +168,17 @@ async def dashboard_page() -> FileResponse:
 
 
 @app.post("/api/session")
-async def create_session(body: SessionCreate) -> dict:
+@limiter.limit(sessions_per_hour_limit)
+async def create_session(request: Request, response: Response, body: SessionCreate) -> dict:
     if not app.state.health.get("openai"):
         raise HTTPException(status_code=503, detail="Chat AI unavailable")
+
+    # Global daily session cap (Phase 2): last-ditch budget defense for a public URL.
+    if await llm_calls.global_sessions_today(app.state.db) >= settings.global_max_sessions_per_day:
+        raise HTTPException(
+            status_code=429,
+            detail="This demo is at capacity for today — please try again tomorrow.",
+        )
 
     tasks: TaskStore = app.state.tasks
     sequence = body.task_sequence or settings.default_task_sequence
@@ -213,6 +255,45 @@ async def health() -> dict:
     except Exception:
         db_ok = False
     return {**app.state.health, "db": db_ok}
+
+
+@app.get("/api/healthz")
+async def healthz() -> dict:
+    """Public liveness + daily-counter status for Fly health checks.
+
+    Always 200 (so a capped demo is still considered 'up'). Exposes only global
+    aggregates — never any individual session info.
+    """
+    sessions_today = await llm_calls.global_sessions_today(app.state.db)
+    judge_today = await llm_calls.global_judge_calls_today(app.state.db)
+    return {
+        "status": "ok",
+        "sessions_today": sessions_today,
+        "sessions_limit": settings.global_max_sessions_per_day,
+        "judge_calls_today": judge_today,
+        "judge_calls_limit": settings.global_max_judge_calls_per_day,
+    }
+
+
+@app.get("/api/status")
+async def public_status() -> dict:
+    """Sanitized status for the candidate UI: ok | degraded | capped."""
+    sessions_today = await llm_calls.global_sessions_today(app.state.db)
+    judge_today = await llm_calls.global_judge_calls_today(app.state.db)
+    if (
+        sessions_today >= settings.global_max_sessions_per_day
+        or judge_today >= settings.global_max_judge_calls_per_day
+    ):
+        return {
+            "status": "capped",
+            "message": "This demo is at capacity for today — please try again tomorrow.",
+        }
+    if not app.state.health.get("openai"):
+        return {
+            "status": "degraded",
+            "message": "The AI assistant is temporarily unavailable. Please try again shortly.",
+        }
+    return {"status": "ok", "message": "Ready."}
 
 
 @app.websocket("/ws/session/{session_id}")

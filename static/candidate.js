@@ -167,6 +167,15 @@ function handleServerMessage(msg) {
       setActiveControls(true);
       break;
     case "exec.result": onExecResult(msg); break;
+    case "chat.capped":
+      appendChat("System", msg.message || "AI usage limit reached for this session.", "err");
+      state.currentAiEl = null;
+      setActiveControls(true);
+      break;
+    case "rate_limited":
+      setStatus(msg.message || "You're doing that too fast — please slow down.");
+      setActiveControls(true);
+      break;
     case "ack": break; // persistence acknowledgement; nothing to render
     case "session.done":
       setStatus("Session complete — thank you!");
@@ -294,10 +303,31 @@ function initEditor() {
   });
 }
 
+async function checkCapacity() {
+  // Public status gate (Phase 2): don't start a session if the demo is at capacity.
+  try {
+    const res = await fetch("/api/status");
+    if (!res.ok) return true; // fail open: let createSession surface real errors
+    const data = await res.json();
+    if (data.status === "capped") {
+      setStatus(data.message || "This demo is at capacity — please try again tomorrow.");
+      setActiveControls(false);
+      return false;
+    }
+    if (data.status === "degraded") {
+      setStatus(data.message || "Service degraded.");
+    }
+    return true;
+  } catch {
+    return true; // network hiccup: don't block on the status check
+  }
+}
+
 async function main() {
   wireEvents();
   initEditor();
   setStatus("Starting session…");
+  if (!(await checkCapacity())) return;
   try {
     await createSession();
     connectWs();
