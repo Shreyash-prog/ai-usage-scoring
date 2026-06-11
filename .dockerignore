@@ -1,0 +1,39 @@
+# Keep the build context (and image) lean and secret-free. The Dockerfile only
+# COPYs pyproject.toml, uv.lock, app/, static/, tasks/ — everything else is noise.
+
+# Secrets — never into an image.
+.env
+*.key
+
+# VCS / CI / tooling
+.git/
+.github/
+.claude/
+.vscode/
+.idea/
+
+# Python caches / build
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+*.egg-info/
+
+# Project state (the SQLite DB lives on the Fly volume, not the image)
+events.db
+events.db-*
+
+# Not needed at runtime
+tests/
+docs/
+deploy/
+*.md
+!README.md
+.DS_Store
+Dockerfile
+.dockerignore

@@ -44,6 +44,7 @@ select = ["E", "F", "I", "UP", "B"]
 asyncio_mode = "auto"
 markers = [
     "live: tests that hit real external APIs (skipped in CI via -m 'not live')",
+    "docker: tests that build the Docker image (slow; skipped via -m 'not docker')",
 ]
 
 [tool.mypy]
