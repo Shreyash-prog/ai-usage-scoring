@@ -169,6 +169,59 @@ cleanly to `exit_code=-1` with the message in `stderr`, exactly as the mocked
 day's 50 free-tier calls (1 live test + 2 latency probes + 1 live WS session); the
 earlier 403s did not count.
 
+### Phase 2 — Cost cap enforcement + per-IP rate limiting
+
+**What changed.** The §P.6.1 budget caps were nominal (values in Settings, never
+enforced); the `llm_calls` cost-log table existed but was never written. Phase 2 makes
+both real and adds public-deploy defenses.
+
+- **Cost logging is now wired.** Every chat and judge call records one `llm_calls` row
+  (`app/storage/llm_calls.py`); the judge client gained an injected `cost_sink` so it can
+  log per call without holding a DB handle. Caps are enforced from these durable counts,
+  not in-memory counters that reset on reconnect.
+- **Per-session caps** (refuse the action, no LLM/Judge0 call): chat input tokens
+  (`session_max_chat_tokens_in`, sums `llm_calls`), code executions
+  (`session_max_code_executions=30`, counts `CODE_EXECUTED` events), and judge calls
+  (`session_max_judge_calls`). When a cap truncates judge scheduling or chat is over
+  budget, the score evidence carries `cost_capped=true` (§P.6.1). The candidate sees a
+  `chat.capped` message or a `session execution limit reached` exec result.
+- **Global daily caps** (NEW, no spec counterpart): `global_max_sessions_per_day=50`
+  (checked at `POST /api/session` → 429) and `global_max_judge_calls_per_day=1000`
+  (checked before judge scheduling). These are the last line of budget defense for a
+  public URL — date-filtered queries over `sessions`/`llm_calls` (UTC day), no extra
+  table or counter to race on.
+- **Per-IP rate limiting.** slowapi (new dep, approved) throttles `POST /api/session`
+  (`5/hour`); the candidate WebSocket can't go through slowapi, so chat (`20/min`) and
+  code-run (`60/min`) messages use an in-handler in-memory sliding window. Client IP comes
+  from `X-Forwarded-For` **only** when `trust_proxy_headers` is set (behind Fly's edge);
+  off-platform it's the socket peer, since XFF is attacker-controlled.
+- **New public endpoints.** `/api/healthz` (always 200, global counters only — no
+  per-session info, for Fly health checks) and `/api/status` (`ok|degraded|capped`; the
+  candidate UI checks it on load and shows a "demo is at capacity, try tomorrow" message
+  when capped).
+
+**Why these numbers.** With $10 ceilings at each provider and no auth, the caps are sized
+so a single abusive session can't drain the budget and a botless flood is bounded:
+50 sessions/day × bounded chat tokens + ≤30 Judge0 runs each stays well under $10, and
+1000 judge calls/day is the hard ceiling on the most expensive (Sonnet) spend. Per-IP
+limits raise the cost of scripted abuse; they're not sufficient alone (trivial IP
+rotation defeats them — see below), which is exactly why the global daily caps exist as
+the real backstop.
+
+**Threat-model note (public, no auth).** Per-IP throttling is necessary but weak: an
+attacker rotating IPs bypasses it. The load-bearing protection is the **global daily
+caps**, which are IP-independent and enforced from durable DB state. The honest residual
+risk: a distributed flood can still exhaust the *day's* free allotment (denying the demo
+to others until UTC midnight) without exceeding spend — acceptable for a POC, called out
+here so it isn't a surprise.
+
+**Smoke (local).** 6 rapid `POST /api/session` from one IP → first 5 `200`, 6th `429`
+with `X-RateLimit-*` + `Retry-After: 3600` headers. `/api/status` `ok`, `/api/healthz`
+200 exposing only `{sessions_today, judge_calls_today, ...}`. 13 new unit/integration
+tests cover each cap and both rate limiters; the existing end-to-end test still passes
+(caps don't break the happy path). No Judge0/LLM spend — session creation makes no model
+calls.
+
 ---
 
 ## 6. Security housekeeping (TODO list — clear before/at end of migration)
