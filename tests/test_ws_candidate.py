@@ -89,8 +89,14 @@ def test_candidate_end_to_end(client: TestClient) -> None:
         assert streamed == "Hello"
 
         ws.send_json({"type": "task.submit", "final_code": "x = 1"})
-        done = ws.receive_json()
-        assert done["type"] == "session.done"
+        # Post-hoc now runs synchronously before session.done, preceded by "scoring".
+        seen = []
+        while True:
+            m = ws.receive_json()
+            seen.append(m["type"])
+            if m["type"] == "session.done":
+                break
+        assert "scoring" in seen
 
     # Events were persisted with monotonic seq across the whole flow.
     events = client.get(f"/api/session/{session_id}/events").json()

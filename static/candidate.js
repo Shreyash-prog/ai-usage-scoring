@@ -33,6 +33,7 @@ const state = {
   lastSnapshotText: "",
   lastSnapshotAt: 0,
   idleTimer: null,
+  keepalive: null,
 };
 
 // --- helpers ----------------------------------------------------------------
@@ -167,6 +168,16 @@ function handleServerMessage(msg) {
       setActiveControls(true);
       break;
     case "exec.result": onExecResult(msg); break;
+    case "scoring":
+      setStatus("Scoring your session… this can take up to a minute.");
+      break;
+    case "scoring.timeout":
+      setStatus(
+        "Scoring took longer than expected — some scores may be " +
+        "incomplete. Refresh dashboard to view final state."
+      );
+      break;
+    case "pong": break; // keepalive ack
     case "chat.capped":
       appendChat("System", msg.message || "AI usage limit reached for this session.", "err");
       state.currentAiEl = null;
@@ -239,9 +250,17 @@ async function createSession() {
 function connectWs() {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
   state.ws = new WebSocket(`${scheme}://${location.host}/ws/session/${state.sessionId}`);
-  state.ws.onopen = () => send({ type: "hello", last_seq: 0 });
+  state.ws.onopen = () => {
+    send({ type: "hello", last_seq: 0 });
+    // Keepalive: Fly's edge proxy drops idle WebSockets (~60s). A ping every 25s
+    // keeps the socket alive through reading/typing gaps AND across the 30-60s
+    // synchronous scoring wait, so user actions don't silently no-op.
+    state.keepalive = setInterval(() => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) send({ type: "ping" });
+    }, 25000);
+  };
   state.ws.onmessage = (ev) => handleServerMessage(JSON.parse(ev.data));
-  state.ws.onclose = () => setStatus("Disconnected.");
+  state.ws.onclose = () => { clearInterval(state.keepalive); setStatus("Disconnected."); };
   state.ws.onerror = () => setStatus("Connection error.");
 }
 

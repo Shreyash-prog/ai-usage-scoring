@@ -1,40 +1,42 @@
-# fly.toml — Fly.io config for ai-usage-scoring.
-# Phase 3 artifact: NOT deployed yet (that's Phase 4). See deploy/README.md.
+# fly.toml app configuration file generated for ai-usage-scoring on 2026-06-10T22:13:14-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-# PLACEHOLDER: set to your real Fly app name (created via `fly apps create <name>`).
-app = "ai-usage-scoring"
-primary_region = "ord"
+app = 'ai-usage-scoring'
+primary_region = 'ord'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  DB_PATH = "/data/events.db"
-  TASKS_DIR = "/app/tasks"
-  # Trust X-Forwarded-For: we're behind Fly's edge proxy, so the real client IP
-  # is in XFF. This is required for per-IP rate limiting to key on the right IP.
-  TRUST_PROXY_HEADERS = "true"
+  DB_PATH = '/data/events.db'
+  TASKS_DIR = '/app/tasks'
+  TRUST_PROXY_HEADERS = 'true'
 
-# Persistent SQLite volume. Create once with:
-#   fly volumes create ai_usage_data --region ord --size 1
 [[mounts]]
-  source = "ai_usage_data"
-  destination = "/data"
+  source = 'ai_usage_data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  # Keep one machine warm: synchronous post-hoc scoring (and the candidate WS)
+  # must survive idle periods — scale-to-zero would suspend the machine mid-session
+  # and drop the socket. Trade-off: ~$2-5/mo always-on instead of near-zero idle.
+  min_machines_running = 1
 
   [[http_service.checks]]
-    method = "GET"
-    path = "/api/healthz"
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "30s"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/api/healthz'
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+  size = 'shared-cpu-1x'
+  memory = '256mb'
+  cpus = 1
+  memory_mb = 256

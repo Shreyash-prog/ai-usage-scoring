@@ -67,6 +67,8 @@ class CandidateSession:
                 kind = msg.get("type")
                 if kind == "hello":
                     await self._present_current_task()
+                elif kind == "ping":
+                    await self._safe_send({"type": "pong"})  # WS keepalive (candidate.js)
                 elif kind == "chat.send":
                     if ws_chat_limiter.allow(self._ip, settings.ratelimit_chat_per_minute, 60):
                         await self._on_chat(msg)
@@ -151,10 +153,29 @@ class CandidateSession:
     async def _end_session(self) -> None:
         await self._emit(EventType.SESSION_ENDED, {})
         await session_store.end_session(self._d.db, self._sid)
-        await self._ws.send_json({"type": "session.done"})
-        # Spawn post-hoc scoring in the background (§10.1); it drains + closes the
-        # bus session when done. The candidate loop returns immediately after this.
-        asyncio.create_task(self._d.posthoc.score_session(self._sid))
+        # Score SYNCHRONOUSLY before returning (Option A). A fire-and-forget task is
+        # orphaned when a scale-to-zero/restartable host suspends after the socket
+        # closes; awaiting it couples completion to this still-open request. The
+        # candidate waits ~10-60s ("Scoring…"). The 120s wait_for bounds a hung
+        # post-hoc (e.g. Anthropic rate limits) so it can't hold the WS open until
+        # Fly kills the request mid-scoring. If the socket drops, scoring still
+        # completes (it's awaited) — only the final sends are best-effort.
+        await self._safe_send({"type": "scoring"})
+        try:
+            await asyncio.wait_for(
+                self._d.posthoc.score_session(self._sid),
+                timeout=120,
+            )
+        except TimeoutError:
+            logger.warning("Post-hoc scoring exceeded 120s for session %s", self._sid)
+            await self._safe_send({"type": "scoring.timeout"})
+        await self._safe_send({"type": "session.done"})
+
+    async def _safe_send(self, payload: dict) -> None:
+        try:
+            await self._ws.send_json(payload)
+        except Exception:
+            pass  # WS may have dropped during long post-hoc; scores are already persisted
 
     # --- editor events ----------------------------------------------------
 

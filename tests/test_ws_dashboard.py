@@ -61,9 +61,12 @@ def _seed_session(client: TestClient) -> str:
         ws.send_json({"type": "code.run", "code": "print('ok')", "stdin": None})
         ws.receive_json()
         ws.send_json({"type": "task.submit", "final_code": "x = 1"})
-        ws.receive_json()
-    # Wait for post-hoc scoring (triggered on submit) to finish, so the dashboard
-    # replay is deterministic and not interleaved with concurrent score broadcasts.
+        # Post-hoc now runs synchronously before session.done; drain to it so we
+        # don't close the socket mid-scoring.
+        while ws.receive_json()["type"] != "session.done":
+            pass
+    # Post-hoc finished in-band above; this just confirms the persisted status so the
+    # dashboard replay is deterministic and not interleaved with score broadcasts.
     for _ in range(50):
         if client.get(f"/api/session/{session_id}").json()["status"] == "scored":
             break
