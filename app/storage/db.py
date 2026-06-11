@@ -27,6 +27,11 @@ class Database:
 
     async def connect(self) -> None:
         """Open connections, apply the schema, and run startup housekeeping."""
+        # Ensure the DB's parent dir exists. On Fly the volume mounts an empty
+        # /data on first boot; locally this is a no-op for ./events.db. Everything
+        # else in the container runs on a read-only rootfs — only /data is writable.
+        parent = Path(self._db_path).parent
+        parent.mkdir(parents=True, exist_ok=True)
         self._write_conn = await self._open_conn()
         await self._ensure_schema(self._write_conn)
         for _ in range(_READ_POOL_SIZE):

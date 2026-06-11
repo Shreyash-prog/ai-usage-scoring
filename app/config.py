@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
 
-    # Storage
+    # Storage. db_path/tasks_dir are overridden by the DB_PATH / TASKS_DIR env vars
+    # (pydantic-settings maps field name <- UPPERCASE env). In the container these
+    # point at the Fly volume (/data/events.db) and the bundled tasks (/app/tasks);
+    # locally they fall back to the repo-relative defaults below.
     db_path: str = "./events.db"
     tasks_dir: str = "./tasks"
     # Default 3-task session (difficulty order); task 000 (reverse) is dev-only.
