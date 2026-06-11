@@ -34,20 +34,12 @@ ANTHROPIC_API_KEY=sk-ant-...
 Common commands: `make test` · `make lint` · `make fmt` · `make typecheck` ·
 `make reset` (wipe local `events.db`) · `make smoke` (live API health check).
 
-## ⚠️ Sandbox is NOT production-safe
+## Code execution
 
-Candidate code runs via `python -I` in a subprocess with POSIX rlimits and a
-wall-clock timeout (spec §11). There is **no network isolation, no filesystem
-isolation beyond the temp cwd, and no import whitelist**. **Do not expose this
-server to untrusted users without replacing the sandbox.** It is built for a trusted
-local demo only.
-
-## Platform note (macOS)
-
-On macOS, per-process memory limits (`RLIMIT_AS`) cannot be enforced via
-`subprocess.preexec_fn` — the OS rejects setting them, so the cap is skipped there.
-The wall-clock timeout is then the only bound on resource consumption. On Linux, both
-the memory cap and the timeout apply.
+Code execution runs on Judge0 (hosted service). The local server never executes
+candidate code. Submissions go to the Judge0 CE free tier (RapidAPI) in synchronous
+mode; set `JUDGE0_API_KEY` in `.env`. Input is capped (50 KB code, 10 KB stdin) and
+output is truncated to `exec_output_limit_kb`.
 
 ## API key isolation (dual-account note)
 
