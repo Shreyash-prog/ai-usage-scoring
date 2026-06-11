@@ -51,9 +51,21 @@ class Settings(BaseSettings):
     # Session
     session_idle_timeout_min: int = 30
 
-    # Cost controls (PROVIDER_SPEC §P.6.1)
+    # Cost controls (PROVIDER_SPEC §P.6.1 + public-deploy additions, Phase 2)
     session_max_judge_calls: int = 200
     session_max_chat_tokens_in: int = 200_000
+    session_max_code_executions: int = 30  # NEW (public): cap Judge0 runs per session
+    # Global daily caps (NEW, no spec counterpart): last line of budget defense.
+    global_max_sessions_per_day: int = 50
+    global_max_judge_calls_per_day: int = 1000
+
+    # Per-IP rate limits (Phase 2; enforced via slowapi on HTTP + in-handler on WS)
+    ratelimit_sessions_per_hour: int = 5
+    ratelimit_chat_per_minute: int = 20
+    ratelimit_runs_per_minute: int = 60
+    # Trust X-Forwarded-For for the client IP only when behind a known proxy
+    # (Fly's edge). Default False for local dev so XFF can't be spoofed off-platform.
+    trust_proxy_headers: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
