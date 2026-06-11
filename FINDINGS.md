@@ -260,6 +260,15 @@ test will run in Phase 4 (and CI on a runner with Docker, if we choose to enable
 First real deploy must watch for: the volume-ownership chown working, 256 MB not OOMing,
 and `/data/events.db` being writable as UID 1000.
 
+**Build break #1 (the unproven Dockerfile bit it).** The first `fly deploy` build failed:
+the Dockerfile builder stage requires **curl + ca-certificates** because `python:3.12-slim`
+is minimal and the uv install script curls the uv binary over HTTPS (and needs the certs to
+verify). Fix: `apt-get install -y --no-install-recommends curl ca-certificates` in the
+builder before the install. *Future improvement:* switch the builder to the official uv
+Docker image (`ghcr.io/astral-sh/uv`), which has uv preinstalled — eliminates the bootstrap
+step (and this whole class of failure) entirely. This is exactly the gap the "couldn't
+build locally" note flagged would surface on first deploy.
+
 ---
 
 ## 6. Security housekeeping (TODO list — clear before/at end of migration)
