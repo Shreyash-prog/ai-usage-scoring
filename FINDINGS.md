@@ -269,6 +269,53 @@ Docker image (`ghcr.io/astral-sh/uv`), which has uv preinstalled — eliminates 
 step (and this whole class of failure) entirely. This is exactly the gap the "couldn't
 build locally" note flagged would surface on first deploy.
 
+### Phase 4 — Deployed (live)
+
+- **URL:** https://ai-usage-scoring.fly.dev/
+- **Deployed:** 2026-06-11 (Fly.io, region `ord`, single `shared-cpu-1x`/256 MB machine,
+  `min_machines_running = 1`).
+- **Smoke (SmokeTest2), end-to-end on the live deploy:** chat → run (`olleh`) → submit →
+  end → **synchronous post-hoc completed**. Final scores `prompt_quality=47`,
+  `verification=64`, `iteration=70`; **11 Anthropic judge calls**, every dimension citing
+  real event seqs with judge evidence quotes; dashboard clickable citation → replay
+  scrubber jump verified. **Total spend ≈ $0.10** (≈$0.08–0.12 Anthropic, ~$0.001 OpenAI,
+  1 Judge0 call). Judge0 usage confirmed 1/50 for the day.
+
+**The deployment lesson (the big one).** The first smoke failed at session-end + scoring,
+and it *looked* like a code bug (orphaned post-hoc, dropped WebSocket). The real proximate
+cause was **Fly's free-trial 5-minute machine cap**: the machine suspended mid-session,
+which dropped the WS (so `session.end` never arrived) *and* raced the deploy's bind check
+(the "not listening on 0.0.0.0:8000" warning). Adding billing — keeping the machine warm —
+cleared both. **A platform billing/trial limit masqueraded as an application bug. Check
+platform limits early in diagnosis, not late.** That said, the fix earned its keep
+independently: fire-and-forget `asyncio.create_task` post-hoc was genuinely fragile (it
+orphans on any redeploy/OOM regardless of the trial cap), so synchronous post-hoc +
+120s `wait_for` + WS keepalive + warm machine is the correct hardening either way.
+
+**Known limitations of the public version.**
+- **Judge0 free tier:** 50 code-execution calls/day, **shared across all users** — a busy
+  day exhausts it for everyone.
+- **No auth:** anyone with the link can use it (the rate limits + global caps are the only
+  guardrails; per-IP throttling is defeatable by IP rotation — the daily caps are the real
+  backstop).
+- **Session auto-creates on candidate page load:** every visit burns one of the 50 daily
+  session slots even with no task done (v0.1: a "Try the demo" landing gate).
+- **No per-user privacy:** all sessions are visible on the shared dashboard.
+- **SQLite on a single Fly volume:** no replication. Redeploys preserve the volume, but
+  there's no backup — volume loss/corruption loses all data.
+
+### v0.1 backlog added during Phase 4
+
+- **Landing-page "Try the demo" gate** so the candidate page stops auto-creating a session
+  on every visit (stops casual visits from eating the 50/day cap).
+- **Defer the OpenAI/Anthropic health probes off the blocking startup path** so uvicorn
+  binds `:8000` immediately — eliminates the cosmetic "app is not listening" deploy warning
+  caused by startup latency.
+- **Persistent "pending-scoring" marker + startup recovery sweep** (Option B): make post-hoc
+  self-heal across redeploys/OOMs, closing the last gap that synchronous scoring (Option A)
+  leaves open.
+- **Rotate the Judge0 RapidAPI key** (see §6 — the Phase 1 housekeeping note).
+
 ---
 
 ## 6. Security housekeeping (TODO list — clear before/at end of migration)

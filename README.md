@@ -1,5 +1,19 @@
 # ai-usage-scoring
 
+### 🔴 Live demo: **https://ai-usage-scoring.fly.dev/**
+
+A **public** demo — no login, anyone with the link can use it:
+
+- **Rate-limited:** 5 sessions per IP/hour, and 50 sessions/day globally (shared across
+  all visitors). You may see "at capacity, try tomorrow" once the daily cap is hit.
+- **Code execution is isolated on [Judge0](https://judge0.com) (hosted)** — the server
+  **never runs candidate code**.
+- **The first request may be slow** (the machine cold-starts after a deploy/restart).
+- Honest results, known limitations, and the full build/deploy story:
+  **[FINDINGS.md](FINDINGS.md)**.
+
+---
+
 A v0 proof-of-concept that scores **how** software-engineering candidates use AI
 during interview tasks — not just what they produce. As a candidate works in a
 browser editor with a chat assistant and a code runner, every interaction is logged
@@ -24,11 +38,12 @@ make dev                        # uvicorn on http://127.0.0.1:8000
 - Candidate: `http://localhost:8000/candidate?candidate_name=Alice`
 - Dashboard: `http://localhost:8000/dashboard`
 
-`.env` holds two keys:
+`.env` holds three keys:
 
 ```
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
+JUDGE0_API_KEY=...              # RapidAPI key for judge0-ce (hosted code execution)
 ```
 
 Common commands: `make test` · `make lint` · `make fmt` · `make typecheck` ·
